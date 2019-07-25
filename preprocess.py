@@ -1,7 +1,9 @@
 import pandas as pd
 import os
 from math import floor, log2
-
+import time
+from pprint import pprint
+from tqdm import tqdm
 '''
     1) Get raw data files
     2) Remove duplicate entries
@@ -17,17 +19,23 @@ params = {
 
 frames = []
 # Iterate through all dataset files and remove duplicates
-for f in os.listdir(params['raw_dir']):
+for f in tqdm(os.listdir(params['raw_dir'])):
     df = pd.read_csv("{0}/{1}".format(params['raw_dir'], f), skipinitialspace=True, usecols=params['fields'], encoding='latin1')
     df.drop_duplicates(keep=False,inplace=True)
     frames.append(df)
     #print(f)
     #print(df)
 
-for f in frames:
+dyad_hours = []
+for f in tqdm(frames):
     current_time = -1
     active_dyad = {}
     for index, row in f.iterrows():
+        try:
+            current_time = time.mktime(time.strptime(row.loc['Timestamp'], '%d/%m/%Y %H:%M'))
+        except:
+            current_time = time.mktime(time.strptime(row.loc['Timestamp'], '%d/%m/%Y %H:%M:%S'))
+        
         c_ip_pair = -1
         
         if (row.loc['Source IP'], row.loc['Destination IP']) in active_dyad:
@@ -40,9 +48,25 @@ for f in frames:
             c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
             active_dyad[c_ip_pair] = []
 
-        active_dyad[c_ip_pair].append((row.loc['Protocol'], floor(log2(row.loc['Fwd Packet Length Mean'])) if row.loc['Fwd Packet Length Mean'] else 0.0))
+        active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']), floor(log2(row.loc['Fwd Packet Length Mean'])) if row.loc['Fwd Packet Length Mean'] else 0), row.loc['Label'])
 
-    print(active_dyad)
+        if current_time > active_dyad[c_ip_pair][0][0] + 60*60:
+            dyad_hours.append((c_ip_pair, active_dyad[c_ip_pair]))
+            active_dyad.pop(c_ip_pair, None)
 
-combined_df = pd.concat(frames)
-print(combined_df)
+    for key in active_dyad:
+        dyad_hours.append((key, active_dyad[key]))
+
+output = []
+for dyad in tqdm(dyad_hours):
+    c_string = "{0}:{1}".format(dyad[0][0], dyad[0][1])
+    for flow in dyad[1]:
+        c_string += "|{0}:{1}".format(flow[1], flow[2])
+
+    #c_string += ",{0}\n".format(dyad[1][0][-1])
+    c_string += "\n"
+    output.append(c_string)
+
+f = open("./data/train/train.txt", 'w+')
+f.writelines(output)
+f.close()
