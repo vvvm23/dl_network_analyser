@@ -48,14 +48,28 @@ for f in tqdm(frames):
             c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
             active_dyad[c_ip_pair] = []
 
-        active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']), floor(log2(row.loc['Fwd Packet Length Mean'])) if row.loc['Fwd Packet Length Mean'] else 0), row.loc['Label'])
+        active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']), floor(log2(row.loc['Fwd Packet Length Mean'])) if row.loc['Fwd Packet Length Mean'] else 0, row.loc['Label']))
 
         if current_time > active_dyad[c_ip_pair][0][0] + 60*60:
-            dyad_hours.append((c_ip_pair, active_dyad[c_ip_pair]))
+            current_attack = "BENIGN"
+
+            for flow in active_dyad[c_ip_pair]:
+                if flow[3] != "BENIGN":
+                    current_attack = flow[3]
+                    break
+
+            dyad_hours.append((c_ip_pair, active_dyad[c_ip_pair], current_attack))
             active_dyad.pop(c_ip_pair, None)
 
     for key in active_dyad:
-        dyad_hours.append((key, active_dyad[key]))
+        current_attack = "BENIGN"
+
+        for flow in active_dyad[key]:
+            if flow[3] != "BENIGN":
+                current_attack = flow[3]
+                break
+
+        dyad_hours.append((key, active_dyad[key], current_attack))
 
 output = []
 for dyad in tqdm(dyad_hours):
@@ -64,9 +78,9 @@ for dyad in tqdm(dyad_hours):
         c_string += "|{0}:{1}".format(flow[1], flow[2])
 
     #c_string += ",{0}\n".format(dyad[1][0][-1])
-    c_string += "\n"
+    c_string += "|{0}\n".format(dyad[2])
     output.append(c_string)
 
-f = open("./data/train/train.txt", 'w+')
+f = open("./data/train/train.txt", 'w+', encoding='latin1')
 f.writelines(output)
 f.close()
