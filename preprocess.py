@@ -20,7 +20,10 @@ params = {
 frames = []
 # Iterate through all dataset files and remove duplicates
 for f in tqdm(os.listdir(params['raw_dir'])):
-    df = pd.read_csv("{0}/{1}".format(params['raw_dir'], f), skipinitialspace=True, usecols=params['fields'], encoding='latin1')
+    print(f)
+    #df = pd.read_csv("{0}/{1}".format(params['raw_dir'], f), skipinitialspace=True, usecols=params['fields'], encoding='latin1')
+    df = pd.read_csv("{0}/{1}".format(params['raw_dir'], f), skipinitialspace=True, encoding='latin1')
+
     df.drop_duplicates(keep=False,inplace=True)
     frames.append(df)
     #print(f)
@@ -50,26 +53,40 @@ for f in tqdm(frames):
 
         active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']), floor(log2(row.loc['Fwd Packet Length Mean'])) if row.loc['Fwd Packet Length Mean'] else 0, row.loc['Label']))
 
-        if current_time > active_dyad[c_ip_pair][0][0] + 60*60:
+        if row.loc['Label'] == 'DoS GoldenEye':
+            print("PING")
+
+        if current_time > active_dyad[c_ip_pair][0][0] + 30*60:
             current_attack = "BENIGN"
-
+            attacks = []
+            attack = False
             for flow in active_dyad[c_ip_pair]:
-                if flow[3] != "BENIGN":
+                if flow[3] != "BENIGN" and (not (current_attack in attacks)):
+                    attack = True
+                    print(c_ip_pair,":",flow[3])
                     current_attack = flow[3]
-                    break
+                    dyad_hours.append((c_ip_pair, active_dyad[c_ip_pair], current_attack))
+                    attacks.append(current_attack)
 
-            dyad_hours.append((c_ip_pair, active_dyad[c_ip_pair], current_attack))
+            if not attack:
+                dyad_hours.append((c_ip_pair, active_dyad[c_ip_pair], current_attack))
             active_dyad.pop(c_ip_pair, None)
 
     for key in active_dyad:
         current_attack = "BENIGN"
+        attacks = []
+        attack = False
 
         for flow in active_dyad[key]:
-            if flow[3] != "BENIGN":
+            if flow[3] != "BENIGN" and (not (current_attack in attacks)):
+                attack = True
+                print(key,":",flow[3])
                 current_attack = flow[3]
-                break
+                dyad_hours.append((c_ip_pair, active_dyad[c_ip_pair], current_attack))
+                attacks.append(current_attack)
 
-        dyad_hours.append((key, active_dyad[key], current_attack))
+        if not attack:
+            dyad_hours.append((key, active_dyad[key], current_attack))
 
 output = []
 for dyad in tqdm(dyad_hours):
