@@ -4,12 +4,7 @@ from math import floor, log2
 import time
 from pprint import pprint
 from tqdm import tqdm
-'''
-    1) Get raw data files
-    2) Remove duplicate entries
-    3) Remove irrelevant fields
 
-'''
 def raw_to_train():
     params = {
         'raw_dir': "./data/raw",
@@ -53,8 +48,7 @@ def raw_to_train():
 
             active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']), floor(log2(row.loc['Fwd Packet Length Mean'])) if row.loc['Fwd Packet Length Mean'] else 0, row.loc['Label']))
 
-
-            if current_time > active_dyad[c_ip_pair][0][0] + 60*60:
+            if current_time > active_dyad[c_ip_pair][0][0] + 60*60 or len(active_dyad[c_ip_pair]) > 300:
                 current_attack = "BENIGN"
                 attacks = []
                 attack = False
@@ -100,7 +94,7 @@ def raw_to_train():
         c_string += ",{0}\n".format(dyad[2])
         output.append(c_string)
 
-    f = open("./data/train/train.txt", 'w+', encoding='latin1')
+    f = open("./data/train/train_300.txt", 'w+', encoding='latin1')
     f.writelines(output)
     f.close()
 
