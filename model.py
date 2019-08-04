@@ -4,12 +4,12 @@ from keras.models import Sequential
 from keras.optimizers import Adam
 
 network_params = {
-    'vocab': 18,
+    'vocab': 39,
     'nb_steps': 301,
     'hidden_size': 100,
     'nb_lstm': 3, 
     'dropout': True,
-    'dropout_rate': 0.5
+    'dropout_rate': 0.4
 }
 
 def create_model(X_shape, Y_shape):
@@ -31,7 +31,7 @@ def create_model(X_shape, Y_shape):
     if network_params['dropout']:
         model.add(Dropout(network_params['dropout_rate']))
     model.add(Flatten())
-    model.add(Dense(Y_shape[1], activation='sigmoid'))
+    model.add(Dense(Y_shape[1], activation='softmax'))
     model.summary()
     return model
 

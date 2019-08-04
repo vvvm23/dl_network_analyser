@@ -9,7 +9,8 @@ def raw_to_train():
     params = {
         'raw_dir': "./data/raw",
         'train_dir': "./data/train",
-        'fields': ["Timestamp", "Source IP", "Destination IP", "Protocol", "Fwd Packet Length Mean", "Label"]
+        'fields': ["Timestamp", "Source IP", "Destination IP", "Protocol", "Fwd Packet Length Mean", "Label"],
+        'write_all': False
     }
 
     frames = []
@@ -93,10 +94,21 @@ def raw_to_train():
         #c_string += ",{0}\n".format(dyad[1][0][-1])
         c_string += ",{0}\n".format(dyad[2])
         output.append(c_string)
-
-    f = open("./data/train/train_300.txt", 'w+', encoding='latin1')
-    f.writelines(output)
-    f.close()
+  
+    if params['write_all']:
+        f = open("./data/train/train_300.txt", 'w+', encoding='latin1')
+        f.writelines(output)
+        f.close()
+    else:
+        f1 = open("./data/train/train_300_benign.txt", 'w+', encoding='latin1')
+        f2 = open("./data/train/train_300_attack.txt", 'w+', encoding='latin1')
+        for l in output:
+            if l[-7:-1] == "BENIGN":
+                f1.write(l)
+            else:
+                f2.write(l)
+        f1.close()
+        f2.close()
 
 if __name__ == '__main__':
     raw_to_train()

@@ -1,7 +1,7 @@
 from keras.preprocessing.text import text_to_word_sequence
 from keras.preprocessing.text import one_hot
 
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 
 from pprint import pprint
 import pandas as pd
@@ -10,7 +10,7 @@ import numpy as np
 from tqdm import tqdm
 from model import create_model
 
-from sklearn.utils import class_weight
+from sklearn.utils.class_weight import compute_class_weight
 import h5py
 '''
     0 - No threat
@@ -112,6 +112,9 @@ vector_labels = np.zeros((_.shape[0], 9))
 for i in tqdm(range(len(one_hot_text))):
     vector_labels[i, attack_type[text_data.iloc[i, 1]]] = 1.0
 '''
+b_vector_text, b_vector_labels = preprocess("./data/train/train_300_benign.txt")
+a_vector_text, a_vector_labels = preprocess("./data/train/train_300_attack.txt")
+
 vector_text, vector_labels = preprocess("./data/train/train_300.txt")
 val_X, val_Y = preprocess("./data/train/validation_300.txt")
 
@@ -120,24 +123,28 @@ print(val_X.shape, val_Y.shape)
 
 model = create_model(vector_text.shape, vector_labels.shape)
 
-opt = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+#opt_1 = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+#opt_2 = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
-class_weights = {
-    0: 1.0,
-    1: 50.0,
-    2: 50.0,
-    3: 50.0,
-    4: 50.0,
-    5: 50.0,
-    6: 50.0,
-    7: 50.0,
-    8: 50.0
-}
+opt_1 = SGD(lr=0.001)
+opt_2 = SGD(lr=0.001)
 
-print(class_weights)
-print("Input Shape:", vector_text.shape)
-print("Output Shape:", vector_labels.shape)
-model.fit(vector_text, vector_labels, epochs=20, batch_size=64, class_weight=class_weights, validation_data=(val_X, val_Y))
+int_labels = np.argmax(vector_labels, axis=-1)
+class_weights = compute_class_weight('balanced', np.unique(int_labels), int_labels)
+d_class_weights = dict(enumerate(class_weights))
+
+print(d_class_weights)
+print("Input Shape:", a_vector_text.shape)
+print("Output Shape:", a_vector_labels.shape)
+  
+for _ in range(5):
+    # COMBINED DATA TRAINING #
+    model.compile(loss='categorical_crossentropy', optimizer=opt_2, metrics=['accuracy'])
+    model.fit(vector_text, vector_labels, epochs=1, batch_size=64, class_weight=d_class_weights, validation_data=(val_X, val_Y))
+
+    # ATTACK DATA TRAINING #
+    model.compile(loss='categorical_crossentropy', optimizer=opt_1, metrics=['accuracy'])
+    model.fit(a_vector_text, a_vector_labels, epochs=30, batch_size=64, validation_data=(val_X, val_Y))
+
 
 model.save("saved_model.h5")
