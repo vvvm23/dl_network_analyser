@@ -12,17 +12,10 @@ from model import create_model
 
 from sklearn.utils.class_weight import compute_class_weight
 import h5py
-'''
-    0 - No threat
-    1 - Port scanning
-    2 - Distributed DoS
-    3 - Botnet
-    4 - Internal Infiltration
-    5 - Web Attack
-    6 - Patator
-    7 - DoS
-    8 - Heartbleed
-'''
+
+from time import time
+
+from _params import params
 
 attack_type = {
     "BENIGN": 0,
@@ -42,109 +35,41 @@ attack_type = {
     "Heartbleed": 8
 }
 
-def preprocess(path):
-    text_data = pd.read_csv(path, header=None, encoding='latin1')
-    text = text_data.iloc[:, 0]
+a_vector_text = np.load('{0}/train_300_X_attack.npy'.format(params['train_dir']))
+a_vector_labels = np.load('{0}/train_300_Y_attack.npy'.format(params['train_dir']))
 
-    text = ['|'.join(text_to_word_sequence(x, filters='', split='|')[1:]) for x in text]
-    text_list = [text_to_word_sequence(x, filters='', split='|') for x in text]
+b_vector_text = np.load('{0}/train_300_X_benign.npy'.format(params['train_dir']))
+b_vector_labels = np.load('{0}/train_300_Y_benign.npy'.format(params['train_dir']))
 
+v_vector_text = np.load('{0}/val_300_X_split.npy'.format(params['train_dir']))
+v_vector_labels = np.load('{0}/val_300_Y_split.npy'.format(params['train_dir']))
 
-    text_list = [x for y in text_list for x in y]
-    vocab_size = len(set(text_list))
-    one_hot_text = [one_hot(t, 39, filters='', split='|') for t in text]
-
-    _ = np.array(one_hot_text)
-
-    max_length = 0
-    for x in one_hot_text:
-        n_len = len(x)
-        max_length = n_len if n_len > max_length else max_length
-
-    one_hot_text = [x + [0]*(max_length-len(x)) for x in one_hot_text]
-
-    _ = np.array(one_hot_text) # EDIT THIS!!
-
-
-    X = np.zeros((_.shape[0], _.shape[1], 39))
-    for i in tqdm(range(len(one_hot_text))):
-        for j in range(len(one_hot_text[i])):
-            X[i, j, one_hot_text[i][j]] = 1.0
-
-    Y = np.zeros((_.shape[0], 9))
-    for i in tqdm(range(len(one_hot_text))):
-        Y[i, attack_type[text_data.iloc[i, 1]]] = 1.0
-
-    return X, Y
-
-
-'''text_data = pd.read_csv("./data/train/train_300.txt", header=None, encoding='latin1')
-text = text_data.iloc[:, 0]
-
-text = ['|'.join(text_to_word_sequence(x, filters='', split='|')[1:]) for x in text]
-text_list = [text_to_word_sequence(x, filters='', split='|') for x in text]
-
-
-text_list = [x for y in text_list for x in y]
-vocab_size = len(set(text_list))
-one_hot_text = [one_hot(t, round(vocab_size*1.3), filters='', split='|') for t in text]
-
-_ = np.array(one_hot_text)
-
-max_length = 0
-for x in one_hot_text:
-    n_len = len(x)
-    max_length = n_len if n_len > max_length else max_length
-
-one_hot_text = [x + [0]*(max_length-len(x)) for x in one_hot_text]
-
-_ = np.array(one_hot_text) # EDIT THIS!!
-
-
-vector_text = np.zeros((_.shape[0], _.shape[1], round(vocab_size*1.3)))
-for i in tqdm(range(len(one_hot_text))):
-    for j in range(len(one_hot_text[i])):
-        vector_text[i, j, one_hot_text[i][j]] = 1.0
-
-print(vector_text.shape)
-
-vector_labels = np.zeros((_.shape[0], 9))
-for i in tqdm(range(len(one_hot_text))):
-    vector_labels[i, attack_type[text_data.iloc[i, 1]]] = 1.0
-'''
-b_vector_text, b_vector_labels = preprocess("./data/train/train_300_benign.txt")
-a_vector_text, a_vector_labels = preprocess("./data/train/train_300_attack.txt")
-
-vector_text, vector_labels = preprocess("./data/train/train_300.txt")
-val_X, val_Y = preprocess("./data/train/validation_300.txt")
-
-print(vector_text.shape, vector_labels.shape)
-print(val_X.shape, val_Y.shape)
-
-model = create_model(vector_text.shape, vector_labels.shape)
+model = create_model(a_vector_text.shape, a_vector_labels.shape)
 
 #opt_1 = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 #opt_2 = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
-opt_1 = SGD(lr=0.001)
-opt_2 = SGD(lr=0.001)
+opt_1 = SGD(lr=params['rate_1'])
+opt_2 = SGD(lr=params['rate_2'])
 
-int_labels = np.argmax(vector_labels, axis=-1)
-class_weights = compute_class_weight('balanced', np.unique(int_labels), int_labels)
-d_class_weights = dict(enumerate(class_weights))
+#int_labels = np.argmax(a, axis=-1)
+#class_weights = compute_class_weight('balanced', np.unique(int_labels), int_labels)
+#d_class_weights = dict(enumerate(class_weights))
 
-print(d_class_weights)
-print("Input Shape:", a_vector_text.shape)
-print("Output Shape:", a_vector_labels.shape)
+print("Attack Input Shape:", a_vector_text.shape)
+print("Attack Output Shape:", a_vector_labels.shape)
   
-for _ in range(5):
-    # COMBINED DATA TRAINING #
+print("Benign Input Shape:", b_vector_text.shape)
+print("Benign Output Shape:", b_vector_labels.shape)
+
+for _ in range(20):
+    # BENIGN DATA TRAINING #
     model.compile(loss='categorical_crossentropy', optimizer=opt_2, metrics=['accuracy'])
-    model.fit(vector_text, vector_labels, epochs=1, batch_size=64, class_weight=d_class_weights, validation_data=(val_X, val_Y))
+    model.fit(b_vector_text, b_vector_labels, epochs=params['epoch_1'], batch_size=params['batch_1'], validation_data=(v_vector_text, v_vector_labels))
 
     # ATTACK DATA TRAINING #
     model.compile(loss='categorical_crossentropy', optimizer=opt_1, metrics=['accuracy'])
-    model.fit(a_vector_text, a_vector_labels, epochs=30, batch_size=64, validation_data=(val_X, val_Y))
+    model.fit(a_vector_text, a_vector_labels, epochs=params['epoch_2'], batch_size=params['batch_2'], validation_data=(v_vector_text, v_vector_labels))
 
 
-model.save("saved_model.h5")
+model.save("saved_model_{0}.h5".format(int(time())))
