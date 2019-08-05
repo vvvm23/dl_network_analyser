@@ -3,27 +3,29 @@ from keras.layers import Dense, Activation, Dropout, Flatten, CuDNNLSTM, Bidirec
 from keras.models import Sequential
 from keras.optimizers import Adam
 
-network_params = {
-    'vocab': 39,
-    'nb_steps': 300,
-    'hidden_size': 100,
-    'nb_lstm': 3, 
-    'dropout': True,
-    'dropout_rate': 0.4
-}
+from _params import params
+
+#network_params = {
+#    'vocab': 39,
+#    'nb_steps': 300,
+#    'hidden_size': 100,
+#    'nb_lstm': 3, 
+#    'dropout': True,
+#    'dropout_rate': 0.4
+#}
 
 def create_model(X_shape, Y_shape):
     model = Sequential()
     model.add(InputLayer(input_shape=(X_shape[1], X_shape[2])))
 
-    for _ in range(network_params['nb_lstm']):
-        model.add(Bidirectional(CuDNNLSTM(network_params['hidden_size'], return_sequences=True)))
-        if network_params['dropout']:
-            model.add(Dropout(network_params['dropout_rate']))
+    for _ in range(params['nb_lstm']):
+        model.add(Bidirectional(CuDNNLSTM(params['hidden_size'], return_sequences=True)))
+        if params['dropout']:
+            model.add(Dropout(params['dropout_rate']))
 
     model.add(TimeDistributed(Dense(64, activation='relu')))
-    if network_params['dropout']:
-        model.add(Dropout(network_params['dropout_rate']))
+    if params['dropout']:
+        model.add(Dropout(params['dropout_rate']))
     model.add(Flatten())
     model.add(Dense(Y_shape[1], activation='softmax'))
     model.summary()
