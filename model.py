@@ -5,15 +5,6 @@ from keras.optimizers import Adam
 
 from _params import params
 
-#network_params = {
-#    'vocab': 39,
-#    'nb_steps': 300,
-#    'hidden_size': 100,
-#    'nb_lstm': 3, 
-#    'dropout': True,
-#    'dropout_rate': 0.4
-#}
-
 def create_model(X_shape, Y_shape):
     model = Sequential()
     model.add(InputLayer(input_shape=(X_shape[1], X_shape[2])))

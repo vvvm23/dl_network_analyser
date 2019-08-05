@@ -3,23 +3,23 @@ params = {
     'train_dir': "./data/train",
     'raw_dir': "./data/raw",
     'split_set': True,
-    'vocab': 39,
-    'nb_steps': 300,
+    'vocab': 50,
+    'nb_steps': 500,
     'nb_classes': 9,
 
     # Model parameters
-    'hidden_size': 100,
-    'nb_lstm': 3,
+    'hidden_size': 300,
+    'nb_lstm': 5,
     'dropout': True,
-    'dropout_rate': 0.4,
+    'dropout_rate': 0.2,
 
     # Training parameters
-    'rate_1': 0.0001,
-    'rate_2': 0.0001,
+    'rate_1': 0.001,
+    'rate_2': 0.001,
     'batch_1': 64,
     'batch_2': 64,
     'epoch_1': 1,
-    'epoch_2': 3,
+    'epoch_2': 1,
     'fields': ["Timestamp", "Source IP", "Destination IP", "Protocol", "Total Fwd Packets", "Total Backward Packets", "Label"],
 
     # Preprocess parameter
