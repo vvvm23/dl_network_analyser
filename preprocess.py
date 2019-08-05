@@ -121,16 +121,16 @@ def raw_to_train():
     one_hot_text = [one_hot(t, params['vocab'], filters='', split='|') for t in token_streams]
     one_hot_text = [x + [0]*(max_length-len(x)) for x in one_hot_text]
     
-    np_one_hot = np.array(one_hot_text)
+    #np_one_hot = np.array(one_hot_text)
 
     # Vectorise inputs
-    X = np.zeros((np_one_hot.shape[0], np_one_hot.shape[1], params['vocab']))
+    X = np.zeros((len(token_streams), params['nb_steps'], params['vocab']), dtype='float16')
     for i in tqdm(range(len(one_hot_text))):
         for j in range(len(one_hot_text[i])):
             X[i, j, one_hot_text[i][j]] = 1.0
 
     # Vectorise outputs
-    Y = np.zeros((np_one_hot.shape[0], params['nb_classes']))
+    Y = np.zeros((len(token_streams), params['nb_classes']))
     for i in tqdm(range(len(one_hot_text))):
         Y[i, attack_type[dyad_hours[i][2]]] = 1.0
     print("Done.")
@@ -151,14 +151,14 @@ def raw_to_train():
         attack_select = [x for x in attack_select if x not in val_select]
         benign_select = [x for x in benign_select if x not in val_select]
 
-        np.save('{0}/train_300_X_attack1.npy'.format(params['train_dir']), X[attack_select, :])
-        np.save('{0}/train_300_Y_attack1.npy'.format(params['train_dir']), Y[attack_select, :])
+        np.save('{0}/train_{1}_X_attack1.npy'.format(params['train_dir'], params['nb_steps']), X[attack_select, :])
+        np.save('{0}/train_{1}_Y_attack1.npy'.format(params['train_dir'], params['nb_steps']), Y[attack_select, :])
 
-        np.save('{0}/train_300_X_benign1.npy'.format(params['train_dir']), X[benign_select, :])
-        np.save('{0}/train_300_Y_benign1.npy'.format(params['train_dir']), Y[benign_select, :])
+        np.save('{0}/train_{1}_X_benign1.npy'.format(params['train_dir'], params['nb_steps']), X[benign_select, :])
+        np.save('{0}/train_{1}_Y_benign1.npy'.format(params['train_dir'], params['nb_steps']), Y[benign_select, :])
 
-        np.save('{0}/val_300_X_split1.npy'.format(params['train_dir']), X[val_select, :])
-        np.save('{0}/val_300_Y_split1.npy'.format(params['train_dir']), Y[val_select, :])
+        np.save('{0}/val_{1}_X_split1.npy'.format(params['train_dir'], params['nb_steps']), X[val_select, :])
+        np.save('{0}/val_{1}_Y_split1.npy'.format(params['train_dir'], params['nb_steps']), Y[val_select, :])
 
     else:
         train_select = list(range(Y.shape[0]))

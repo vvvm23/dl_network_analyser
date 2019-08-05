@@ -16,8 +16,8 @@ params = {
     # Training parameters
     'rate_1': 0.001,
     'rate_2': 0.001,
-    'batch_1': 64,
-    'batch_2': 64,
+    'batch_1': 16,
+    'batch_2': 16,
     'epoch_1': 1,
     'epoch_2': 1,
     'fields': ["Timestamp", "Source IP", "Destination IP", "Protocol", "Total Fwd Packets", "Total Backward Packets", "Label"],

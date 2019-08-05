@@ -14,6 +14,7 @@ def create_model(X_shape, Y_shape):
         if params['dropout']:
             model.add(Dropout(params['dropout_rate']))
 
+    # Maybe remove this dense layer, and add TimeDistributed to final softmax layer
     model.add(TimeDistributed(Dense(64, activation='relu')))
     if params['dropout']:
         model.add(Dropout(params['dropout_rate']))
