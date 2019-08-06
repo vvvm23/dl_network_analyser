@@ -24,5 +24,6 @@ params = {
 
     # Preprocess parameter
     'max_hour': 1.0,
-    'nb_val': 100
+    'nb_val': 100,
+    'h5_mode': True
 }

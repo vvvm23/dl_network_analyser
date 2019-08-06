@@ -10,6 +10,7 @@ import numpy as np
 from keras.preprocessing.text import text_to_word_sequence
 from keras.preprocessing.text import one_hot
 
+import h5py as h5
 from _params import params
 
 # Define attack types and label mappings
@@ -150,26 +151,68 @@ def raw_to_train():
 
         attack_select = [x for x in attack_select if x not in val_select]
         benign_select = [x for x in benign_select if x not in val_select]
+        
+        if params['h5_mode']:
+            f = h5.File('{0}/train_{1}_X_attack1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_X_attack1'.format(params['nb_steps']), data = X[attack_select, :])
+            f.close()
 
-        np.save('{0}/train_{1}_X_attack1.npy'.format(params['train_dir'], params['nb_steps']), X[attack_select, :])
-        np.save('{0}/train_{1}_Y_attack1.npy'.format(params['train_dir'], params['nb_steps']), Y[attack_select, :])
+            f = h5.File('{0}/train_{1}_Y_attack1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_Y_attack1'.format(params['nb_steps']), data = Y[attack_select, :])
+            f.close()
 
-        np.save('{0}/train_{1}_X_benign1.npy'.format(params['train_dir'], params['nb_steps']), X[benign_select, :])
-        np.save('{0}/train_{1}_Y_benign1.npy'.format(params['train_dir'], params['nb_steps']), Y[benign_select, :])
+            f = h5.File('{0}/train_{1}_X_benign.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_X_benign1'.format(params['nb_steps']), data = X[benign_select, :])
+            f.close()
 
-        np.save('{0}/val_{1}_X_split1.npy'.format(params['train_dir'], params['nb_steps']), X[val_select, :])
-        np.save('{0}/val_{1}_Y_split1.npy'.format(params['train_dir'], params['nb_steps']), Y[val_select, :])
+            f = h5.File('{0}/train_{1}_X_benign.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_Y_benign1'.format(params['nb_steps']), data = Y[benign_select, :])
+            f.close()
+
+            f = h5.File('{0}/train_{1}_X_split1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_Y_split1'.format(params['nb_steps']), data = X[val_select, :])
+            f.close()
+
+            f = h5.File('{0}/train_{1}_X_split1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_Y_split1'.format(params['nb_steps']), data = Y[val_select, :])
+            f.close()
+        else:
+            np.save('{0}/train_{1}_X_attack1.npy'.format(params['train_dir'], params['nb_steps']), X[attack_select, :])
+            np.save('{0}/train_{1}_Y_attack1.npy'.format(params['train_dir'], params['nb_steps']), Y[attack_select, :])
+
+            np.save('{0}/train_{1}_X_benign1.npy'.format(params['train_dir'], params['nb_steps']), X[benign_select, :])
+            np.save('{0}/train_{1}_Y_benign1.npy'.format(params['train_dir'], params['nb_steps']), Y[benign_select, :])
+
+            np.save('{0}/val_{1}_X_split1.npy'.format(params['train_dir'], params['nb_steps']), X[val_select, :])
+            np.save('{0}/val_{1}_Y_split1.npy'.format(params['train_dir'], params['nb_steps']), Y[val_select, :])
 
     else:
         train_select = list(range(Y.shape[0]))
         val_select = sample(train_select, params['nb_vals'])
         train_select = [x for x in train_select if x not in val_select]
 
-        np.save('{0}/train_300_X_combined1.npy'.format(params['train_dir']), X[train_select, :])
-        np.save('{0}/train_300_Y_combined1.npy'.format(params['train_dir']), Y[train_select, :])
+        if params['h5_mode']:
+            f = h5.File('{0}/train_{1}_X_combined1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_X_combined1'.format(params['nb_steps']), data = X[train_select, :])
+            f.close()
 
-        np.save('{0}/val_300_X_combined1.npy'.format(params['train_dir']), X[val_select, :])
-        np.save('{0}/val_300_Y_combined1.npy'.format(params['train_dir']), Y[val_select, :])
+            f = h5.File('{0}/train_{1}_X_combined.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_Y_combined1'.format(params['nb_steps']), data = Y[train_select, :])
+            f.close()
+
+            f = h5.File('{0}/train_{1}_X_split1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_Y_split1'.format(params['nb_steps']), data = X[val_select, :])
+            f.close()
+
+            f = h5.File('{0}/train_{1}_X_split1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_Y_split1'.format(params['nb_steps']), data = Y[val_select, :])
+            f.close()
+        else:
+            np.save('{0}/train_300_X_combined1.npy'.format(params['train_dir']), X[train_select, :])
+            np.save('{0}/train_300_Y_combined1.npy'.format(params['train_dir']), Y[train_select, :])
+
+            np.save('{0}/val_300_X_combined1.npy'.format(params['train_dir']), X[val_select, :])
+            np.save('{0}/val_300_Y_combined1.npy'.format(params['train_dir']), Y[val_select, :])
     print("Done.")
 
 if __name__ == '__main__':
