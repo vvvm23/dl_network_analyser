@@ -50,12 +50,12 @@ for _ in tqdm(range(20)):
     # BENIGN DATA TRAINING #
     print("Training with Benign subset..")
     model.compile(loss='categorical_crossentropy', optimizer=opt_2, metrics=['accuracy'])
-    model.fit(b_vector_text, b_vector_labels, epochs=params['epoch_1'], batch_size=params['batch_1'], validation_data=(v_vector_text, v_vector_labels))
+    model.fit(b_vector_text, b_vector_labels, epochs=params['epoch_1'], batch_size=params['batch_1'], validation_data=(v_vector_text, v_vector_labels), shuffle=False if params['h5_mode'] else True)
 
     # ATTACK DATA TRAINING #
     print("Training with Attack subset..")
     model.compile(loss='categorical_crossentropy', optimizer=opt_1, metrics=['accuracy'])
-    model.fit(a_vector_text, a_vector_labels, epochs=params['epoch_2'], batch_size=params['batch_2'], validation_data=(v_vector_text, v_vector_labels))
+    model.fit(a_vector_text, a_vector_labels, epochs=params['epoch_2'], batch_size=params['batch_2'], validation_data=(v_vector_text, v_vector_labels), shuffle=False if params['h5_mode'] else True)
 
 print("Training complete. Save? Y/N", end='')
 x = input(": ")
