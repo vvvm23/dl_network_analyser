@@ -153,28 +153,28 @@ def raw_to_train():
         benign_select = [x for x in benign_select if x not in val_select]
         
         if params['h5_mode']:
-            f = h5.File('{0}/train_{1}_X_attack1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
-            f.create_dataset('train_{0}_X_attack1'.format(params['nb_steps']), data = X[attack_select, :])
+            f = h5.File('{0}/train_{1}_X_attack.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_X_attack'.format(params['nb_steps']), data = X[attack_select, :])
             f.close()
 
-            f = h5.File('{0}/train_{1}_Y_attack1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
-            f.create_dataset('train_{0}_Y_attack1'.format(params['nb_steps']), data = Y[attack_select, :])
-            f.close()
-
-            f = h5.File('{0}/train_{1}_X_benign.h5'.format(params['train_dir'], params['nb_steps']), 'w')
-            f.create_dataset('train_{0}_X_benign1'.format(params['nb_steps']), data = X[benign_select, :])
+            f = h5.File('{0}/train_{1}_Y_attack.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_Y_attack'.format(params['nb_steps']), data = Y[attack_select, :])
             f.close()
 
             f = h5.File('{0}/train_{1}_X_benign.h5'.format(params['train_dir'], params['nb_steps']), 'w')
-            f.create_dataset('train_{0}_Y_benign1'.format(params['nb_steps']), data = Y[benign_select, :])
+            f.create_dataset('train_{0}_X_benign'.format(params['nb_steps']), data = X[benign_select, :])
             f.close()
 
-            f = h5.File('{0}/train_{1}_X_split1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
-            f.create_dataset('train_{0}_Y_split1'.format(params['nb_steps']), data = X[val_select, :])
+            f = h5.File('{0}/train_{1}_Y_benign.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('train_{0}_Y_benign'.format(params['nb_steps']), data = Y[benign_select, :])
             f.close()
 
-            f = h5.File('{0}/train_{1}_X_split1.h5'.format(params['train_dir'], params['nb_steps']), 'w')
-            f.create_dataset('train_{0}_Y_split1'.format(params['nb_steps']), data = Y[val_select, :])
+            f = h5.File('{0}/val_{1}_X_split.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('val_{0}_X_split'.format(params['nb_steps']), data = X[val_select, :])
+            f.close()
+
+            f = h5.File('{0}/val_{1}_Y_split.h5'.format(params['train_dir'], params['nb_steps']), 'w')
+            f.create_dataset('val_{0}_Y_split'.format(params['nb_steps']), data = Y[val_select, :])
             f.close()
         else:
             np.save('{0}/train_{1}_X_attack1.npy'.format(params['train_dir'], params['nb_steps']), X[attack_select, :])
