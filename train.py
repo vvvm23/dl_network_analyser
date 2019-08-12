@@ -13,6 +13,8 @@ from time import time
 from model import create_model
 from _params import params
 
+from random import sample
+
 print("Loading Training Data from file.. ", end='')
 if params['split_set']:
     if params['h5_mode']:
@@ -22,7 +24,7 @@ if params['split_set']:
         b_vector_text = HDF5Matrix('{0}/train_{1}_X_benign.h5'.format(params['train_dir'], params['nb_steps']), 'train_{0}_X_benign'.format(params['nb_steps']))
         b_vector_labels = HDF5Matrix('{0}/train_{1}_Y_benign.h5'.format(params['train_dir'], params['nb_steps']), 'train_{0}_Y_benign'.format(params['nb_steps']))
 
-        v_vector_text = HDF5Matrix('{0}/val_{1}_X_split.h5'.format(params['train_dir'], params['nb_steps']), 'val_{0}_X_split'.format(params['nb_steps'])) # CHANGE THIS
+        v_vector_text = HDF5Matrix('{0}/val_{1}_X_split.h5'.format(params['train_dir'], params['nb_steps']), 'val_{0}_X_split'.format(params['nb_steps']))
         v_vector_labels = HDF5Matrix('{0}/val_{1}_Y_split.h5'.format(params['train_dir'], params['nb_steps']), 'val_{0}_Y_split'.format(params['nb_steps']))
     else:
         a_vector_text = np.load('{0}/train_{1}_X_attack.npy'.format(params['train_dir'], params['nb_steps']))
@@ -42,20 +44,24 @@ model = create_model(a_vector_text.shape, a_vector_labels.shape)
 print("Done.")
 
 print("Creating Optimisers.. ", end='')
-opt_1 = Nadam(lr=params['rate_1']) #opt_1 = SGD(lr=params['rate_1'])
-opt_2 = Nadam(lr=params['rate_2']) #opt_2 = SGD(lr=params['rate_2'])
+opt_1 = Adam(lr=params['rate_1']) #opt_1 = SGD(lr=params['rate_1'])
+opt_2 = Adam(lr=params['rate_2']) #opt_2 = SGD(lr=params['rate_2'])
 print("Done.")
 
-for _ in tqdm(range(20)):
-    # BENIGN DATA TRAINING #
-    print("Training with Benign subset..")
-    model.compile(loss='categorical_crossentropy', optimizer=opt_2, metrics=['accuracy'])
-    model.fit(b_vector_text, b_vector_labels, epochs=params['epoch_1'], batch_size=params['batch_1'], validation_data=(v_vector_text, v_vector_labels), shuffle=False if params['h5_mode'] else True)
+print(a_vector_text.shape)
 
+for _ in tqdm(range(50)):
     # ATTACK DATA TRAINING #
     print("Training with Attack subset..")
+    random_subset = np.random.randint(a_vector_text.shape[0], size=3500)
     model.compile(loss='categorical_crossentropy', optimizer=opt_1, metrics=['accuracy'])
-    model.fit(a_vector_text, a_vector_labels, epochs=params['epoch_2'], batch_size=params['batch_2'], validation_data=(v_vector_text, v_vector_labels), shuffle=False if params['h5_mode'] else True)
+    model.fit(a_vector_text[random_subset, :, :], a_vector_labels[random_subset, :], epochs=params['epoch_1'], batch_size=params['batch_1'], validation_data=(v_vector_text, v_vector_labels), shuffle=False if params['h5_mode'] else True)
+
+    # BENIGN DATA TRAINING #
+    print("Training with Benign subset..")
+    random_subset = np.random.randint(a_vector_text.shape[0], size=3500)
+    model.compile(loss='categorical_crossentropy', optimizer=opt_2, metrics=['accuracy'])
+    model.fit(b_vector_text[random_subset, :, :], b_vector_labels[random_subset, :], epochs=params['epoch_2'], batch_size=params['batch_2'], validation_data=(v_vector_text, v_vector_labels), shuffle=False if params['h5_mode'] else True)
 
 print("Training complete. Save? Y/N", end='')
 x = input(": ")

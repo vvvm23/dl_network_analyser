@@ -177,14 +177,14 @@ def raw_to_train():
             f.create_dataset('val_{0}_Y_split'.format(params['nb_steps']), data = Y[val_select, :])
             f.close()
         else:
-            np.save('{0}/train_{1}_X_attack1.npy'.format(params['train_dir'], params['nb_steps']), X[attack_select, :])
-            np.save('{0}/train_{1}_Y_attack1.npy'.format(params['train_dir'], params['nb_steps']), Y[attack_select, :])
+            np.save('{0}/train_{1}_X_attack.npy'.format(params['train_dir'], params['nb_steps']), X[attack_select, :])
+            np.save('{0}/train_{1}_Y_attack.npy'.format(params['train_dir'], params['nb_steps']), Y[attack_select, :])
 
-            np.save('{0}/train_{1}_X_benign1.npy'.format(params['train_dir'], params['nb_steps']), X[benign_select, :])
-            np.save('{0}/train_{1}_Y_benign1.npy'.format(params['train_dir'], params['nb_steps']), Y[benign_select, :])
+            np.save('{0}/train_{1}_X_benign.npy'.format(params['train_dir'], params['nb_steps']), X[benign_select, :])
+            np.save('{0}/train_{1}_Y_benign.npy'.format(params['train_dir'], params['nb_steps']), Y[benign_select, :])
 
-            np.save('{0}/val_{1}_X_split1.npy'.format(params['train_dir'], params['nb_steps']), X[val_select, :])
-            np.save('{0}/val_{1}_Y_split1.npy'.format(params['train_dir'], params['nb_steps']), Y[val_select, :])
+            np.save('{0}/val_{1}_X_split.npy'.format(params['train_dir'], params['nb_steps']), X[val_select, :])
+            np.save('{0}/val_{1}_Y_split.npy'.format(params['train_dir'], params['nb_steps']), Y[val_select, :])
 
     else:
         train_select = list(range(Y.shape[0]))
@@ -208,11 +208,11 @@ def raw_to_train():
             f.create_dataset('train_{0}_Y_split1'.format(params['nb_steps']), data = Y[val_select, :])
             f.close()
         else:
-            np.save('{0}/train_300_X_combined1.npy'.format(params['train_dir']), X[train_select, :])
-            np.save('{0}/train_300_Y_combined1.npy'.format(params['train_dir']), Y[train_select, :])
+            np.save('{0}/train_300_X_combined.npy'.format(params['train_dir']), X[train_select, :])
+            np.save('{0}/train_300_Y_combined.npy'.format(params['train_dir']), Y[train_select, :])
 
-            np.save('{0}/val_300_X_combined1.npy'.format(params['train_dir']), X[val_select, :])
-            np.save('{0}/val_300_Y_combined1.npy'.format(params['train_dir']), Y[val_select, :])
+            np.save('{0}/val_300_X_combined.npy'.format(params['train_dir']), X[val_select, :])
+            np.save('{0}/val_300_Y_combined.npy'.format(params['train_dir']), Y[val_select, :])
     print("Done.")
 
 if __name__ == '__main__':
