@@ -11,14 +11,14 @@ params = {
     # Model parameters
     'hidden_size': 30,
     'nb_lstm': 5,
-    'dropout': True,
-    'dropout_rate': 0.5,
+    'dropout': False,
+    'dropout_rate': 0.2,
 
     # Training parameters
     'rate_1': 0.0001,
     'rate_2': 0.0001,
-    'batch_1': 32,
-    'batch_2': 32,
+    'batch_1': 16,
+    'batch_2': 16,
     'epoch_1': 1,
     'epoch_2': 1,
     'fields': ["Timestamp", "Source IP", "Destination IP", "Protocol", "Total Fwd Packets", "Total Backward Packets", "Label"],
