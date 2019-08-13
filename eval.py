@@ -1,5 +1,6 @@
-from keras.models import load_model, Sequential
-from keras.optimizers import Adam
+from keras.models import load_model
+from sklearn.metrics import confusion_matrix
+
 import h5py
 import numpy as np
 
@@ -34,6 +35,9 @@ def evaluate(model_path, eval_path_X, eval_path_Y):
         print("Predicted: {0}    \t\t Actual: {1}     \t\t {2}".format(attack_type[max_Y[i]], attack_type[max_r[i]], "CORRECT" if max_Y[i] == max_r[i] else "INCORRECT"))
 
     print("Accuracy: {0}%".format(accuracy*100))
+
+    c_matrix = confusion_matrix(max_r, max_Y)
+    print(c_matrix)
 
 if __name__ == '__main__':
     evaluate('./models/1565697816_best_85.h5', '{0}/val_200_X_split.npy'.format(params['train_dir']), '{0}/val_200_Y_split.npy'.format(params['train_dir']))

@@ -55,7 +55,7 @@ early_stop = EarlyStopping(monitor='val_acc', patience=10, mode='max')
 mdl_check = ModelCheckpoint('{0}/{1}_best.h5'.format(params['model_dir'], save_name), save_best_only=True, monitor='val_acc', mode='max')
 #reduce_lr = ReduceLROnPlateau(monitor='val_acc', factor=0.1, patience=10, verbose=1, mode='max')
 
-for _ in tqdm(range(50)):
+for _ in tqdm(range(100)):
     # ATTACK DATA TRAINING #
     print("Training with Attack subset..")
     random_subset = np.random.randint(a_vector_text.shape[0], size=3500)
