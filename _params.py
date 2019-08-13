@@ -2,6 +2,7 @@ params = {
     # Shared parameters
     'train_dir': "./data/train",
     'raw_dir': "./data/raw",
+    'model_dir': "./models",
     'split_set': True,
     'vocab': 50,
     'nb_steps': 200,
@@ -16,8 +17,8 @@ params = {
     # Training parameters
     'rate_1': 0.0001,
     'rate_2': 0.0001,
-    'batch_1': 16,
-    'batch_2': 16,
+    'batch_1': 32,
+    'batch_2': 32,
     'epoch_1': 1,
     'epoch_2': 1,
     'fields': ["Timestamp", "Source IP", "Destination IP", "Protocol", "Total Fwd Packets", "Total Backward Packets", "Label"],
