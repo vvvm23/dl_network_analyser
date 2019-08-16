@@ -37,7 +37,8 @@ def evaluate(model_path, eval_path_X, eval_path_Y):
     print("Accuracy: {0}%".format(accuracy*100))
 
     c_matrix = confusion_matrix(max_r, max_Y)
+
     print(c_matrix)
 
 if __name__ == '__main__':
-    evaluate('./models/1565697816_best_85.h5', '{0}/val_200_X_split.npy'.format(params['train_dir']), '{0}/val_200_Y_split.npy'.format(params['train_dir']))
+    evaluate('./models/1565948451_200_best.h5', '{0}/val_200_X_benign.npy'.format(params['train_dir']), '{0}/val_200_Y_benign.npy'.format(params['train_dir']))

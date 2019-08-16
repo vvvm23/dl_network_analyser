@@ -52,24 +52,34 @@ def raw_to_train():
             try:
                 current_time = time.mktime(time.strptime(row.loc['Timestamp'], '%d/%m/%Y %H:%M'))
             except:
-                current_time = time.mktime(time.strptime(row.loc['Timestamp'], '%d/%m/%Y %H:%M:%S'))
-            
+                try:
+                    current_time = time.mktime(time.strptime(row.loc['Timestamp'], '%d/%m/%Y %H:%M:%S'))
+                except:
+                    current_time = time.mktime(time.strptime(row.loc['Timestamp'], '%d/%m/%Y %H:%M:%S %p'))
+
             c_ip_pair = -1
             # Check if IP pair already exists in an actice dyad. If it does not create new dyad
-            if (row.loc['Source IP'], row.loc['Destination IP']) in active_dyad:
-                c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
+            if (row.loc['Src IP'], row.loc['Dst IP']) in active_dyad:
+                #c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
+                c_ip_pair = (row.loc['Src IP'], row.loc['Dst IP'])
                 pass
-            elif (row.loc['Destination IP'], row.loc['Source IP']) in active_dyad:
-                c_ip_pair = (row.loc['Destination IP'], row.loc['Source IP'])
+            elif (row.loc['Dst IP'], row.loc['Src IP']) in active_dyad:
+                #c_ip_pair = (row.loc['Destination IP'], row.loc['Source IP'])
+                c_ip_pair = (row.loc['Dst IP'], row.loc['Src IP'])
                 pass
             else:
-                c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
+                #c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
+                c_ip_pair = (row.loc['Src IP'], row.loc['Dst IP'])
                 active_dyad[c_ip_pair] = []
 
             # Add current data to active dyad
-            active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']),
+            '''active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']),
                                         floor(log2(row.loc['Total Fwd Packets'])) if row.loc['Total Fwd Packets'] else 0,
                                         floor(log2(row.loc['Total Backward Packets'])) if row.loc['Total Backward Packets'] else 0,
+                                        row.loc['Label']))'''
+            active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']),
+                                        floor(log2(row.loc['Tot Fwd Pkts'])) if row.loc['Tot Fwd Pkts'] else 0,
+                                        floor(log2(row.loc['Tot Bwd Pkts'])) if row.loc['Tot Bwd Pkts'] else 0,
                                         row.loc['Label']))
 
             # If current time exceeds dyad "hour" or max length reached then close dyad.
@@ -146,7 +156,7 @@ def raw_to_train():
 
         benign_select = [x for x in range(Y.shape[0]) if x not in attack_select]
 
-        val_select = sample(attack_select, 50)
+        val_select = sample(attack_select, 0)
         val_select += sample(benign_select, 50)
 
         attack_select = [x for x in attack_select if x not in val_select]

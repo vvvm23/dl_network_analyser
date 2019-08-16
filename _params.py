@@ -1,7 +1,7 @@
 params = {
     # Shared parameters
     'train_dir': "./data/train",
-    'raw_dir': "./data/raw",
+    'raw_dir': "./data/real",
     'model_dir': "./models",
     'split_set': True,
     'vocab': 50,
@@ -11,7 +11,7 @@ params = {
     # Model parameters
     'hidden_size': 30,
     'nb_lstm': 5,
-    'dropout': False,
+    'dropout': True,
     'dropout_rate': 0.2,
 
     # Training parameters
@@ -21,7 +21,8 @@ params = {
     'batch_2': 16,
     'epoch_1': 1,
     'epoch_2': 1,
-    'fields': ["Timestamp", "Source IP", "Destination IP", "Protocol", "Total Fwd Packets", "Total Backward Packets", "Label"],
+    #'fields': ["Timestamp", "Source IP", "Destination IP", "Protocol", "Total Fwd Packets", "Total Backward Packets", "Label"],
+    'fields': ["Timestamp", "Src IP", "Dst IP", "Protocol", "Tot Fwd Pkts", "Tot Bwd Pkts", "Label"],
 
     # Preprocess parameter
     'max_hour': 1.0,

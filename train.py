@@ -1,6 +1,7 @@
 from keras.preprocessing.text import text_to_word_sequence
 from keras.preprocessing.text import one_hot
 from keras.optimizers import Adam, SGD, Nadam
+from keras.models import load_model
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 
 import numpy as np
@@ -10,6 +11,7 @@ import h5py
 from keras.utils.io_utils import HDF5Matrix
 
 from time import time
+import sys
 
 from model import create_model
 from _params import params
@@ -48,27 +50,50 @@ print("Done.")
 
 print("Creating Optimisers.. ", end='')
 opt_1 = Adam(lr=params['rate_1']) #opt_1 = SGD(lr=params['rate_1'])
-opt_2 = Adam(lr=params['rate_2']) #opt_2 = SGD(lr=params['rate_2'])
+print("Done.")
+
+print("Compiling Model.. ", end='')
+model.compile(loss='categorical_crossentropy', optimizer=opt_1, metrics=['accuracy'])
 print("Done.")
 
 early_stop = EarlyStopping(monitor='val_acc', patience=10, mode='max')
-mdl_check = ModelCheckpoint('{0}/{1}_best.h5'.format(params['model_dir'], save_name), save_best_only=True, monitor='val_acc', mode='max')
+mdl_check = ModelCheckpoint('{0}/{1}_{2}_best.h5'.format(params['model_dir'], save_name, params['nb_steps']), save_best_only=True, monitor='val_acc', mode='max')
 #reduce_lr = ReduceLROnPlateau(monitor='val_acc', factor=0.1, patience=10, verbose=1, mode='max')
 
-for _ in tqdm(range(100)):
-    # ATTACK DATA TRAINING #
+if len(sys.argv) == 2:
+    model = load_model(sys.argv[1])
+
+attack_length = a_vector_text.shape[0]
+print(attack_length)
+for _ in tqdm(range(50)):
+    # Maybe try combining attack and benign together again?
+    random_subset = np.random.randint(b_vector_text.shape[0], size=attack_length)
+
+    print(a_vector_text.shape)
+    print(a_vector_labels.shape)
+
+    concat_X = np.concatenate((a_vector_text, b_vector_text[random_subset, :, :]), axis=0)
+    concat_Y = np.concatenate((a_vector_labels, b_vector_labels[random_subset, :]), axis=0)
+
+
+    model.fit(concat_X, concat_Y,
+            epochs=params['epoch_1'], batch_size=params['batch_1'],
+            validation_data=(v_vector_text, v_vector_labels), 
+            shuffle=False if params['h5_mode'] else True,
+            callbacks=[early_stop, mdl_check])
+
+    '''# ATTACK DATA TRAINING #
     print("Training with Attack subset..")
-    random_subset = np.random.randint(a_vector_text.shape[0], size=3500)
-    model.compile(loss='categorical_crossentropy', optimizer=opt_1, metrics=['accuracy'])
+    random_subset = np.random.randint(a_vector_text.shape[0], size=2000)
     model.fit(a_vector_text[random_subset, :, :], a_vector_labels[random_subset, :], epochs=params['epoch_1'], batch_size=params['batch_1'], validation_data=(v_vector_text, v_vector_labels), shuffle=False if params['h5_mode'] else True, callbacks=[early_stop, mdl_check])
 
     # BENIGN DATA TRAINING #
     print("Training with Benign subset..")
-    random_subset = np.random.randint(a_vector_text.shape[0], size=3500)
-    model.compile(loss='categorical_crossentropy', optimizer=opt_2, metrics=['accuracy'])
+    random_subset = np.random.randint(a_vector_text.shape[0], size=2000)
     model.fit(b_vector_text[random_subset, :, :], b_vector_labels[random_subset, :], epochs=params['epoch_2'], batch_size=params['batch_2'], validation_data=(v_vector_text, v_vector_labels), shuffle=False if params['h5_mode'] else True, callbacks=[early_stop, mdl_check])
-
+    '''
+    
 print("Training complete. Save? Y/N", end='')
 x = input(": ")
 if x == "Y":
-    model.save("{0}/{1}_final.h5".format(params['model_dir'], save_name))
+    model.save("{0}/{1}_{2}_final.h5".format(params['model_dir'], save_name, params['nb_steps']))
