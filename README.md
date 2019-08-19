@@ -1,4 +1,4 @@
-# A WORKING TITLE LSTM INTRUSION DETECTION SYSTEM
+# A Working Title LSTM Intrusion Detection System
 ## Overview
 Keras implementation of an LSTM Neural Network to detect malicious network traffic.
 
@@ -13,14 +13,14 @@ So far, only tested on Windows.
 
 ## Architecture
 ### LSTM
+To be completed
 
 ### Sentinel
+To be completed
 
 ## References
 Citations for CICFlowMeter
 ```
 Arash Habibi Lashkari, Gerard Draper-Gil, Mohammad Saiful Islam Mamun and Ali A. Ghorbani, "Characterization of Tor Traffic Using Time Based Features", In the proceeding of the 3rd International Conference on Information System Security and Privacy, SCITEPRESS, Porto, Portugal, 2017
-
 Gerard Drapper Gil, Arash Habibi Lashkari, Mohammad Mamun, Ali A. Ghorbani, "Characterization of Encrypted and VPN Traffic Using Time-Related Features", In Proceedings of the 2nd International Conference on Information Systems Security and Privacy(ICISSP 2016) , pages 407-414, Rome , Italy
-
 ```
