@@ -33,6 +33,8 @@ from math import floor, log2
 PCAP_MAX_LENGTH = 16384 # Length of pcap file before creating a new one
 CIC_MIN_START = 512 # Minimum number of packets before calculating flow data
 PRE_MIN_START = 64 # Minimum number of flows before preprocessing
+DEBUG = True
+SILENT = False
 
 pcap_count = 0
 start_time = 0
@@ -45,9 +47,27 @@ params = {
 def banner():
     f = open("./banner.txt")
     lines = f.readlines()
+    print("\033[1;34;40m ", end='')
     print(''.join(lines))
     f.close()
     pass
+
+def print_debug(msg):
+    if DEBUG and not SILENT:
+        print("\033[1;32;40m DEBUG:\t\t{0}".format(msg))
+
+def print_warn(msg):
+    if not SILENT:
+        print("\033[1;33;40m WARNING:\t\t{0}".format(msg))
+
+def print_error(msg):
+    # Overrides silent mode
+    print("\033[1;31;40m ERROR:\t\t{0}".format(msg))
+
+def print_info(msg):
+    # Overrides silent mode
+    print("\033[1;37;40m INFO:\t\t{0}".format(msg))
+
 
 # Update and display UI
 def display_ui():
@@ -56,16 +76,18 @@ def display_ui():
 def write_pkts(pkts):
     # Maybe get rid of start time and simply overwrite old.
     # But start_time gives unique session ID.
-    wrpcap('{0}_sentinel_pcap_{1}.pcap'.format(start_time, pcap_count), pkts, append=True)
+    try:
+        wrpcap('{0}_sentinel_pcap_{1}.pcap'.format(start_time, pcap_count), pkts, append=True)
+    except:
+        print_error("Failed to write to pcap file!")
+        exit()
 
 def preprocess():
     pass
 
 def run_sentinel():
     # Setup code
-    print("INFO:\t\t XYZ SENTINEL START.")
-    si = subprocess.STARTUPINFO()
-    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    print_info("XYZ SENTINEL START.")
 
     scapy.all.conf.sniff_promisc = True
     cic_pkt_count = 0
@@ -81,42 +103,60 @@ def run_sentinel():
     pre_count = 1
 
     model_path = ""
-    #model = load_model(model_path)
+    
+    try:
+        #model = load_model(model_path)
+        pass
+    except:
+        print_error("Failed to load model from {0}".format(model_path))
 
     # Infinite Loop
     while True:
-        packets = sniff(count=params['pkt_count'])
+        try:
+            packets = sniff(count=params['pkt_count'])
+        except:
+            print_error("Failed to sniff packets")
+
+        if not params['pkt_count'] == len(packets):
+            print_warn("Mismatch in number of packets sniffed")
+
         cic_pkt_count += len(packets)
         pcap_pkt_count += len(packets)
         for pkt in packets:    
             t = time.localtime()
             current_time = time.strftime("%H:%M:%S", t)
-            print("INFO:\t\t{0} {1}".format(current_time, pkt.summary()))
+            print_info("{0} {1}".format(current_time, pkt.summary()))
         
         write_pkts(packets)
 
         # Call CIC if min has been exceeded
         if cic_pkt_count >= CIC_MIN_START:
-            print("INFO:\t\tPassing to CIC\n")
-            #print("DEBUG:\t\t{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/sentinel_pcap.pcap {0}/CIC_out.csv".format(os.getcwd().replace("\\", "/")))
+            print_info("Passing to CIC\n")
             pcap_name = "{0}_sentinel_pcap_{1}.pcap".format(start_time, pcap_count)
-            os.system("{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/{1} {0}/CIC_out/ > nul".format(os.getcwd().replace("\\", "/"), pcap_name))
-            #subprocess.call("{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/sentinel_pcap.pcap {0}/CIC_out.csv".format(os.getcwd().replace("\\", "/")), startupinfo=si)
+
+            if os.system("{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/{1} {0}/CIC_out/ > nul".format(os.getcwd().replace("\\", "/"), pcap_name)):
+                print_error("CICFlowMeter threw an error..")
             cic_pkt_count = 0
 
             flow_count = sum(1 for l in open("./CIC_out/{0}_Flow.csv".format(pcap_name)))
-            print("DEBUG:\t\tNb. Flows: {0}".format(flow_count))
+            print_debug("Nb. Flows: {0}".format(flow_count))
 
         if flow_count > PRE_MIN_START * pre_count:
             # Call preprocessing script
             # Then pass to model
-            
+            print_debug("CALLED PREPROCESS")
 
             pre_count += 1
+            #exit()
 
         # Increment pcap counter if max exceeded
+        
+        # DEBUG
+        if not pcap_pkt_count % 10:
+            print_debug("pcap_pkt_count = {0}".format(pcap_pkt_count))
+
         if pcap_pkt_count >= PCAP_MAX_LENGTH:
-            print("INFO:\t\tMax PCAP length reached. Creating new file")
+            print_info("Max PCAP length reached. Creating new file")
             pcap_count += 1
             pcap_pkt_count = 0
 
