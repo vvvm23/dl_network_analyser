@@ -39,8 +39,8 @@ from _params import params
 
 PCAP_MAX_LENGTH = 2**16 # Length of pcap file before creating a new one, deprecated
 PCAP_MAX_SIZE = 9*(10**8)
-CIC_MIN_START = 2**10 # Minimum number of packets before calculating flow data
-PRE_MIN_START = 1024 # Minimum number of flows before preprocessing
+CIC_MIN_START = 2**8 # Minimum number of packets before calculating flow data
+PRE_MIN_START = 512 # Minimum number of flows before preprocessing
 VERBOSITY = 1 # 0 - DWEI | 1 - WEI | 2 - EI | 3 - I
 DEBUG = False
 SILENT = False
@@ -223,7 +223,7 @@ def run_sentinel():
 
         # Call CIC if min has been exceeded
         if cic_pkt_count >= CIC_MIN_START:
-            print_info("Passing to CIC\n")
+            print_debug("Passing to CIC")
             pcap_name = "{0}_sentinel_pcap_{1}.pcap".format(start_time, pcap_count)
 
             if os.system("{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/{1} {0}/CIC_out/ > nul".format(os.getcwd().replace("\\", "/"), pcap_name)):
