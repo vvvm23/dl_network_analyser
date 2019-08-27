@@ -45,6 +45,8 @@ else:
 print("Done.")
 
 print("Creating Model.. ", end='')
+print(a_vector_text.shape)
+print(a_vector_labels.shape)
 model = create_model(a_vector_text.shape, a_vector_labels.shape)
 print("Done.")
 
@@ -57,43 +59,38 @@ model.compile(loss='categorical_crossentropy', optimizer=opt_1, metrics=['accura
 print("Done.")
 
 early_stop = EarlyStopping(monitor='val_acc', patience=10, mode='max')
-mdl_check = ModelCheckpoint('{0}/{1}_{2}_best.h5'.format(params['model_dir'], save_name, params['nb_steps']), save_best_only=True, monitor='val_acc', mode='max')
+mdl_check = ModelCheckpoint('{0}/{1}_{2}_best.h5'.format(params['model_dir'], save_name, params['nb_steps']), 
+                            save_best_only=True, monitor='val_acc', mode='max')#, save_weights_only=params['cpu_eval'])
 #reduce_lr = ReduceLROnPlateau(monitor='val_acc', factor=0.1, patience=10, verbose=1, mode='max')
 
 if len(sys.argv) == 2:
     model = load_model(sys.argv[1])
 
 attack_length = a_vector_text.shape[0]
-print(attack_length)
-for _ in tqdm(range(50)):
+for _ in tqdm(range(3)):
     # Maybe try combining attack and benign together again?
     random_subset = np.random.randint(b_vector_text.shape[0], size=attack_length)
 
     print(a_vector_text.shape)
-    print(a_vector_labels.shape)
+    print(b_vector_text.shape)
 
     concat_X = np.concatenate((a_vector_text, b_vector_text[random_subset, :, :]), axis=0)
     concat_Y = np.concatenate((a_vector_labels, b_vector_labels[random_subset, :]), axis=0)
 
+    print(concat_X.shape)
+    print(concat_Y.shape)
 
     model.fit(concat_X, concat_Y,
             epochs=params['epoch_1'], batch_size=params['batch_1'],
             validation_data=(v_vector_text, v_vector_labels), 
             shuffle=False if params['h5_mode'] else True,
             callbacks=[early_stop, mdl_check])
-
-    '''# ATTACK DATA TRAINING #
-    print("Training with Attack subset..")
-    random_subset = np.random.randint(a_vector_text.shape[0], size=2000)
-    model.fit(a_vector_text[random_subset, :, :], a_vector_labels[random_subset, :], epochs=params['epoch_1'], batch_size=params['batch_1'], validation_data=(v_vector_text, v_vector_labels), shuffle=False if params['h5_mode'] else True, callbacks=[early_stop, mdl_check])
-
-    # BENIGN DATA TRAINING #
-    print("Training with Benign subset..")
-    random_subset = np.random.randint(a_vector_text.shape[0], size=2000)
-    model.fit(b_vector_text[random_subset, :, :], b_vector_labels[random_subset, :], epochs=params['epoch_2'], batch_size=params['batch_2'], validation_data=(v_vector_text, v_vector_labels), shuffle=False if params['h5_mode'] else True, callbacks=[early_stop, mdl_check])
-    '''
     
 print("Training complete. Save? Y/N", end='')
 x = input(": ")
 if x == "Y":
+    '''if params['cpu_eval']:
+        model.save_weights("{0}/{1}_{2}_final_wonly.h5".format(params['model_dir'], save_name, params['nb_steps']))
+    else:
+        model.save("{0}/{1}_{2}_final.h5".format(params['model_dir'], save_name, params['nb_steps']))'''
     model.save("{0}/{1}_{2}_final.h5".format(params['model_dir'], save_name, params['nb_steps']))

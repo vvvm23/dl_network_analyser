@@ -59,28 +59,28 @@ def raw_to_train():
 
             c_ip_pair = -1
             # Check if IP pair already exists in an actice dyad. If it does not create new dyad
-            if (row.loc['Src IP'], row.loc['Dst IP']) in active_dyad:
-                #c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
-                c_ip_pair = (row.loc['Src IP'], row.loc['Dst IP'])
+            if (row.loc['Source IP'], row.loc['Destination IP']) in active_dyad:
+                c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
+                #c_ip_pair = (row.loc['Src IP'], row.loc['Dst IP'])
                 pass
-            elif (row.loc['Dst IP'], row.loc['Src IP']) in active_dyad:
-                #c_ip_pair = (row.loc['Destination IP'], row.loc['Source IP'])
-                c_ip_pair = (row.loc['Dst IP'], row.loc['Src IP'])
+            elif (row.loc['Destination IP'], row.loc['Source IP']) in active_dyad:
+                c_ip_pair = (row.loc['Destination IP'], row.loc['Source IP'])
+                #c_ip_pair = (row.loc['Dst IP'], row.loc['Src IP'])
                 pass
             else:
-                #c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
-                c_ip_pair = (row.loc['Src IP'], row.loc['Dst IP'])
+                c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
+                #c_ip_pair = (row.loc['Src IP'], row.loc['Dst IP'])
                 active_dyad[c_ip_pair] = []
 
             # Add current data to active dyad
-            '''active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']),
+            active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']),
                                         floor(log2(row.loc['Total Fwd Packets'])) if row.loc['Total Fwd Packets'] else 0,
                                         floor(log2(row.loc['Total Backward Packets'])) if row.loc['Total Backward Packets'] else 0,
-                                        row.loc['Label']))'''
-            active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']),
+                                        row.loc['Label']))
+            '''active_dyad[c_ip_pair].append((current_time, int(row.loc['Protocol']),
                                         floor(log2(row.loc['Tot Fwd Pkts'])) if row.loc['Tot Fwd Pkts'] else 0,
                                         floor(log2(row.loc['Tot Bwd Pkts'])) if row.loc['Tot Bwd Pkts'] else 0,
-                                        row.loc['Label']))
+                                        row.loc['Label']))'''
 
             # If current time exceeds dyad "hour" or max length reached then close dyad.
             if current_time > active_dyad[c_ip_pair][0][0] + 60*params['max_hour'] or len(active_dyad[c_ip_pair]) >= params['nb_steps']:
@@ -156,7 +156,7 @@ def raw_to_train():
 
         benign_select = [x for x in range(Y.shape[0]) if x not in attack_select]
 
-        val_select = sample(attack_select, 0)
+        val_select = sample(attack_select, 50)
         val_select += sample(benign_select, 50)
 
         attack_select = [x for x in attack_select if x not in val_select]
@@ -164,7 +164,7 @@ def raw_to_train():
         
         if params['h5_mode']:
             f = h5.File('{0}/train_{1}_X_attack.h5'.format(params['train_dir'], params['nb_steps']), 'w')
-            f.create_dataset('train_{0}_X_attack'.format(params['nb_steps']), data = X[attack_select, :])
+            f.create_dataset('train_{0}_X_attack'.format(params['nb_steps']), data = X[attack_select, :, :])
             f.close()
 
             f = h5.File('{0}/train_{1}_Y_attack.h5'.format(params['train_dir'], params['nb_steps']), 'w')
@@ -172,7 +172,7 @@ def raw_to_train():
             f.close()
 
             f = h5.File('{0}/train_{1}_X_benign.h5'.format(params['train_dir'], params['nb_steps']), 'w')
-            f.create_dataset('train_{0}_X_benign'.format(params['nb_steps']), data = X[benign_select, :])
+            f.create_dataset('train_{0}_X_benign'.format(params['nb_steps']), data = X[benign_select, :, :])
             f.close()
 
             f = h5.File('{0}/train_{1}_Y_benign.h5'.format(params['train_dir'], params['nb_steps']), 'w')
@@ -180,20 +180,20 @@ def raw_to_train():
             f.close()
 
             f = h5.File('{0}/val_{1}_X_split.h5'.format(params['train_dir'], params['nb_steps']), 'w')
-            f.create_dataset('val_{0}_X_split'.format(params['nb_steps']), data = X[val_select, :])
+            f.create_dataset('val_{0}_X_split'.format(params['nb_steps']), data = X[val_select, :, :])
             f.close()
 
             f = h5.File('{0}/val_{1}_Y_split.h5'.format(params['train_dir'], params['nb_steps']), 'w')
             f.create_dataset('val_{0}_Y_split'.format(params['nb_steps']), data = Y[val_select, :])
             f.close()
         else:
-            np.save('{0}/train_{1}_X_attack.npy'.format(params['train_dir'], params['nb_steps']), X[attack_select, :])
+            np.save('{0}/train_{1}_X_attack.npy'.format(params['train_dir'], params['nb_steps']), X[attack_select, :, :])
             np.save('{0}/train_{1}_Y_attack.npy'.format(params['train_dir'], params['nb_steps']), Y[attack_select, :])
 
-            np.save('{0}/train_{1}_X_benign.npy'.format(params['train_dir'], params['nb_steps']), X[benign_select, :])
+            np.save('{0}/train_{1}_X_benign.npy'.format(params['train_dir'], params['nb_steps']), X[benign_select, :, :])
             np.save('{0}/train_{1}_Y_benign.npy'.format(params['train_dir'], params['nb_steps']), Y[benign_select, :])
 
-            np.save('{0}/val_{1}_X_split.npy'.format(params['train_dir'], params['nb_steps']), X[val_select, :])
+            np.save('{0}/val_{1}_X_split.npy'.format(params['train_dir'], params['nb_steps']), X[val_select, :, :])
             np.save('{0}/val_{1}_Y_split.npy'.format(params['train_dir'], params['nb_steps']), Y[val_select, :])
 
     else:

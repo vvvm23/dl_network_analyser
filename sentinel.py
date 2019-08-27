@@ -39,11 +39,12 @@ from _params import params
 
 PCAP_MAX_LENGTH = 2**16 # Length of pcap file before creating a new one, deprecated
 PCAP_MAX_SIZE = 9*(10**8)
-CIC_MIN_START = 2**8 # Minimum number of packets before calculating flow data
-PRE_MIN_START = 512 # Minimum number of flows before preprocessing
-VERBOSITY = 1 # 0 - DWEI | 1 - WEI | 2 - EI | 3 - I
+CIC_MIN_START = 2**8 # Minimum number of packets before calculating flow data. Set such that min nb of CIC calls are made
+PRE_MIN_START = 32 # Minimum number of flows before preprocessing
+VERBOSITY = 0 # 0 - DWEI | 1 - WEI | 2 - EI | 3 - I
 DEBUG = False
 SILENT = False
+SUMMARY = True
 PKT_COUNT = 64
 
 pcap_count = 0
@@ -169,16 +170,37 @@ def preprocess(csv_name):
 def format_out(lstm_out):
     # Input size, (N, 9)
     max_lstm_out = np.argmax(lstm_out, axis=1)
-    for pred in max_lstm_out:
-        if pred == 0:
-            print_debug("Detected BENIGN flow")
-        else:
-            print_attack("Detected {0} flow".format(attack_type[pred]))
-    
+    format_count = {
+        0:0,
+        1:0,
+        2:0,
+        3:0,
+        4:0,
+        5:0,
+        6:0,
+        7:0,
+        8:0,
+    }
+    if SUMMARY:
+        for pred in max_lstm_out:
+            format_count[pred] += 1
+
+        print_attack("Detected Following Flows:")
+        for attack in format_count:
+            if format_count[attack]:
+                if not attack == 0 or VERBOSITY == 0:
+                    print_attack("\t{0}x {1}".format(format_count[attack], attack_type[attack]))
+    else:
+        for i in range(len(max_lstm_out)):
+            pred = max_lstm_out[i]
+            if pred == 0:
+                print_debug("Detected BENIGN flow.\t\tProbability: {0:.3f}".format(lstm_out[i, pred]))
+            else:
+                print_attack("Detected {0} flow.\t\tProbability: {1:.3f}".format(attack_type[pred], lstm_out[i, pred]))
 
 def run_sentinel():
     # Setup code
-    print_info("XYZ SENTINEL START.")
+    print_info("XYZ SENTINEL STARTING.")
 
     scapy.all.conf.sniff_promisc = True
     cic_pkt_count = 0
@@ -203,6 +225,7 @@ def run_sentinel():
         exit()
 
     # Infinite Loop
+    print_info("XYZ SENTINEL START.")
     while True:
         try:
             packets = sniff(count=PKT_COUNT)
@@ -214,9 +237,9 @@ def run_sentinel():
 
         cic_pkt_count += len(packets)
         pcap_pkt_count += len(packets)
-        for pkt in packets:    
-            t = time.localtime()
-            current_time = time.strftime("%H:%M:%S", t)
+        #for pkt in packets:    
+            #t = time.localtime()
+            #current_time = time.strftime("%H:%M:%S", t)
             #print_info("{0} {1}".format(current_time, pkt.summary()))
         
         write_pkts(packets)
@@ -264,6 +287,7 @@ def run_sentinel():
             if pcap_count == 2:
                 exit()
 
+# TODO: Multithread the application
 def w_sniff():
     pass
 
@@ -278,6 +302,7 @@ def w_lstm_call():
 
 
 if __name__ == '__main__':
+    # TODO: Handle Command Line inputs for:
+    # Verbosity, MIN parameters, Network Choice, pkt count
     banner()
     run_sentinel()
-    pass
