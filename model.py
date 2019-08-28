@@ -22,5 +22,7 @@ def create_model(X_shape, Y_shape, cudnn=True):
         model.add(Dropout(params['dropout_rate'], name="dropout_1"))
     model.add(Flatten(name="flatten"))
     model.add(Dense(Y_shape[1], activation='softmax', name="dense_2"))
+    #model.add(Flatten(name="flatten"))
+    #model.add(TimeDistributed(Dense(Y_shape[1], activation='softmax', name="dense_2")))
     model.summary()
     return model

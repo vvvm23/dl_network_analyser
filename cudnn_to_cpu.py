@@ -19,4 +19,4 @@ def convert(model_path):
     model.save(model_path[:-3] + '_cpu.h5')
 
 if __name__ == '__main__':
-    convert("./models/1566940876_200_final.h5")
+    convert("./models/1567001597_200_best.h5")

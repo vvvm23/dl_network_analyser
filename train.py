@@ -67,9 +67,9 @@ if len(sys.argv) == 2:
     model = load_model(sys.argv[1])
 
 attack_length = a_vector_text.shape[0]
-for _ in tqdm(range(3)):
+for _ in tqdm(range(50)):
     # Maybe try combining attack and benign together again?
-    random_subset = np.random.randint(b_vector_text.shape[0], size=attack_length)
+    random_subset = np.random.randint(b_vector_text.shape[0], size=int(attack_length))
 
     print(a_vector_text.shape)
     print(b_vector_text.shape)
@@ -89,8 +89,4 @@ for _ in tqdm(range(3)):
 print("Training complete. Save? Y/N", end='')
 x = input(": ")
 if x == "Y":
-    '''if params['cpu_eval']:
-        model.save_weights("{0}/{1}_{2}_final_wonly.h5".format(params['model_dir'], save_name, params['nb_steps']))
-    else:
-        model.save("{0}/{1}_{2}_final.h5".format(params['model_dir'], save_name, params['nb_steps']))'''
     model.save("{0}/{1}_{2}_final.h5".format(params['model_dir'], save_name, params['nb_steps']))

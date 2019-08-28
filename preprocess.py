@@ -156,8 +156,8 @@ def raw_to_train():
 
         benign_select = [x for x in range(Y.shape[0]) if x not in attack_select]
 
-        val_select = sample(attack_select, 50)
-        val_select += sample(benign_select, 50)
+        val_select = sample(attack_select, 20)
+        val_select += sample(benign_select, 20)
 
         attack_select = [x for x in attack_select if x not in val_select]
         benign_select = [x for x in benign_select if x not in val_select]

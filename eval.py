@@ -60,4 +60,4 @@ def evaluate(model_path, eval_path_X, eval_path_Y):
     print(c_matrix)
 
 if __name__ == '__main__':
-    evaluate('./models/1566940876_200_final.h5', '{0}/val_200_X_split.npy'.format(params['train_dir']), '{0}/val_200_Y_split.npy'.format(params['train_dir']))
+    evaluate('./models/1567001597_200_best_cpu.h5', '{0}/val_200_X_split.npy'.format(params['train_dir']), '{0}/val_200_Y_split.npy'.format(params['train_dir']))
