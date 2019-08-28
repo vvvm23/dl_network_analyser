@@ -27,38 +27,20 @@ def evaluate(model_path, eval_path_X, eval_path_Y):
     v_vector_text = np.load('{0}/val_{1}_X_split.npy'.format(params['train_dir'], params['nb_steps']))
     v_vector_labels = np.load('{0}/val_{1}_Y_split.npy'.format(params['train_dir'], params['nb_steps']))
 
-    model = create_model(v_vector_text.shape, v_vector_labels.shape, not params['cpu_eval'])
-    cudnn_model = load_model(model_path)
-    if params['cpu_eval']:
-        for i in range(params['nb_lstm']):
-            #cudnn_weights = cudnn_model.get_layer("lstm_{0}".format(i)).get_weights()
-            #weights = preprocess_weights_for_loading(model.get_layer("lstm_{0}".format(i)), cudnn_weights, '1')
-
-            '''for y in range(len(cudnn_weights)):
-                for x in range(len(cudnn_weights[y])):
-                    print(y, x)
-                    try:
-                        print(len(cudnn_weights[y][x]))
-                        print(len(weights[y][x]))
-                        if not len(cudnn_weights[y][x]) == len(weights[y][x]):
-                            print("MISMATCH")
-                    except:
-                        print(cudnn_weights[y][x])
-                        print(weights[y][x])
-                    print()'''
-
-            #model.get_layer("lstm_{0}".format(i)).set_weights(weights)
-            pass
-        cudnn_weights = cudnn_model.get_weights()
-        weights = preprocess_weights_for_loading(model, cudnn_weights, '1')
-        model.set_weights(weights)
+    #model = create_model(v_vector_text.shape, v_vector_labels.shape, not params['cpu_eval'])
+    #cudnn_model = load_model(model_path)
+    #if params['cpu_eval']:
+    #    cudnn_weights = cudnn_model.get_weights()
+    #    weights = preprocess_weights_for_loading(model, cudnn_weights, '1')
+    #    model.set_weights(weights)
 
      
-    else:
-        model = cudnn_model
+    #else:
+    #    model = cudnn_model
 
     #assert np.array(cudnn_model.get_weights()) == np.array(model.get_weights())
 
+    model = load_model(model_path)
     opt = Adam(lr=params['rate_1'])
     model.compile(opt, loss='categorical_crossentropy', metrics=['accuracy'])
     loss, accuracy = model.evaluate(v_vector_text, v_vector_labels)
