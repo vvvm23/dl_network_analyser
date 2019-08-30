@@ -47,6 +47,8 @@ SILENT = False
 SUMMARY = True
 PKT_COUNT = 1
 
+PCAP_PATH = "./pcap"
+
 pcap_count = 0
 start_time = 0
 
@@ -98,7 +100,7 @@ def write_pkts(pkts):
     # Maybe get rid of start time and simply overwrite old.
     # But start_time gives unique session ID.
     try:
-        wrpcap('{0}_sentinel_pcap_{1}.pcap'.format(start_time, pcap_count), pkts, append=True)
+        wrpcap('{0}/{1}_sentinel_pcap_{2}.pcap'.format(PCAP_PATH, start_time, pcap_count), pkts, append=True)
     except:
         print_error("Failed to write to pcap file!")
         exit()
@@ -208,7 +210,7 @@ def run_sentinel():
     global start_time
     global pcap_count
 
-    start_time = time.time()
+    start_time = int(time.time())
     pcap_count = 0
     pcap_pkt_count = 0
 
@@ -247,7 +249,7 @@ def run_sentinel():
         # Call CIC if min has been exceeded
         if cic_pkt_count >= CIC_MIN_START:
             print_debug("Passing to CIC")
-            pcap_name = "{0}_sentinel_pcap_{1}.pcap".format(start_time, pcap_count)
+            pcap_name = "{0}/{1}_sentinel_pcap_{2}.pcap".format(PCAP_PATH, start_time, pcap_count)
 
             if os.system("{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/{1} {0}/CIC_out/ > nul".format(os.getcwd().replace("\\", "/"), pcap_name)):
                 print_error("CICFlowMeter threw an error..")
@@ -279,7 +281,7 @@ def run_sentinel():
 
         # Increment pcap counter if max exceeded
         #if pcap_pkt_count >= PCAP_MAX_LENGTH:
-        if os.path.getsize("./{0}_sentinel_pcap_{1}.pcap".format(start_time, pcap_count)) >= PCAP_MAX_SIZE:
+        if os.path.getsize("{0}/{1}_sentinel_pcap_{2}.pcap".format(PCAP_PATH, start_time, pcap_count)) >= PCAP_MAX_SIZE:
             print_info("Max PCAP length reached. Creating new file")
             pcap_count += 1
             pcap_pkt_count = 0

@@ -1,3 +1,7 @@
 data/
 __pycache__/
 models/
+pcap/
+CIC_out/
+logs/
+CICFlowMeter-4.0/
