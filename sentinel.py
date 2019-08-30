@@ -45,7 +45,7 @@ VERBOSITY = 0 # 0 - DWEI | 1 - WEI | 2 - EI | 3 - I
 DEBUG = False
 SILENT = False
 SUMMARY = True
-PKT_COUNT = 64
+PKT_COUNT = 1
 
 pcap_count = 0
 start_time = 0
@@ -215,7 +215,7 @@ def run_sentinel():
     flow_count = 0
     pre_count = 1
 
-    model_path = "./models/1565942947_200_best_95.h5"
+    model_path = "./models/1567001597_200_best_cpu.h5"
     
     try:
         model = load_model(model_path)

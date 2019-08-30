@@ -11,7 +11,7 @@ def create_model(X_shape, Y_shape, cudnn=True):
 
     for i in range(params['nb_lstm']):
         model.add(Bidirectional(CuDNNLSTM(params['hidden_size'], return_sequences=True), name="lstm_{0}".format(i)) if cudnn 
-            else Bidirectional(LSTM(params['hidden_size'], return_sequences=True), name="lstm_{0}".format(i)))
+            else Bidirectional(LSTM(params['hidden_size'], return_sequences=True, recurrent_activation='sigmoid'), name="lstm_{0}".format(i)))
         
         if params['dropout']:
             model.add(Dropout(params['dropout_rate'], name="dropout_LSTM_{0}".format(i)))
