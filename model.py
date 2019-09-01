@@ -16,7 +16,6 @@ def create_model(X_shape, Y_shape, cudnn=True):
         if params['dropout']:
             model.add(Dropout(params['dropout_rate'], name="dropout_LSTM_{0}".format(i)))
 
-    # Maybe remove this dense layer, and add TimeDistributed to final softmax layer
     model.add(TimeDistributed(Dense(64, activation='relu', name="dense_1")))
     if params['dropout']:
         model.add(Dropout(params['dropout_rate'], name="dropout_1"))
@@ -24,5 +23,4 @@ def create_model(X_shape, Y_shape, cudnn=True):
     model.add(Dense(Y_shape[1], activation='softmax', name="dense_2"))
     #model.add(Flatten(name="flatten"))
     #model.add(TimeDistributed(Dense(Y_shape[1], activation='softmax', name="dense_2")))
-    model.summary()
     return model

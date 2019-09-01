@@ -10,7 +10,7 @@ params = {
     'cpu_eval': True, # If true, save weights only so can be loaded as LSTM rather than CuDNN LSTM
 
     # Model parameters
-    'hidden_size': 30,
+    'hidden_size': 50,
     'nb_lstm': 5,
     'dropout': True,
     'dropout_rate': 0.2,
@@ -23,7 +23,6 @@ params = {
     'epoch_1': 1,
     'epoch_2': 1,
     'fields': ["Timestamp", "Source IP", "Destination IP", "Protocol", "Total Fwd Packets", "Total Backward Packets", "Label"],
-    #'fields': ["Timestamp", "Src IP", "Dst IP", "Protocol", "Tot Fwd Pkts", "Tot Bwd Pkts", "Label"],
 
     # Preprocess parameter
     'max_hour': 1.0,

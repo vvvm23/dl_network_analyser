@@ -1,16 +1,21 @@
 import time
+from datetime import datetime
 import os
 import subprocess
+import sys
 
+# Attempt to disable annoying logging messages
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+import tensorflow as tf
 from tensorflow import logging
-
+logging.set_verbosity(logging.ERROR)
 os.system('cls')
-print("\033[1;37;40mINFO:\t\tLoading Sentinel")
 
 from keras.models import load_model
 from keras.preprocessing.text import text_to_word_sequence
 from keras.preprocessing.text import one_hot
-logging.set_verbosity(logging.ERROR)
+
 
 import h5py as h5
 import pandas as pd
@@ -41,7 +46,7 @@ PCAP_MAX_LENGTH = 2**16 # Length of pcap file before creating a new one, depreca
 PCAP_MAX_SIZE = 9*(10**8)
 CIC_MIN_START = 2**8 # Minimum number of packets before calculating flow data. Set such that min nb of CIC calls are made
 PRE_MIN_START = 32 # Minimum number of flows before preprocessing
-VERBOSITY = 0 # 0 - DWEI | 1 - WEI | 2 - EI | 3 - I
+VERBOSITY = 1 # 0 - DWEI | 1 - WEI | 2 - EI | 3 - I
 DEBUG = False
 SILENT = False
 SUMMARY = True
@@ -51,7 +56,8 @@ PCAP_PATH = "./pcap"
 
 pcap_count = 0
 start_time = 0
-
+#interface = "WiFi"
+interface = "Ethernet"
 
 attack_type = {
     0:"Benign",
@@ -97,8 +103,6 @@ def display_ui():
     pass
 
 def write_pkts(pkts):
-    # Maybe get rid of start time and simply overwrite old.
-    # But start_time gives unique session ID.
     try:
         wrpcap('{0}/{1}_sentinel_pcap_{2}.pcap'.format(PCAP_PATH, start_time, pcap_count), pkts, append=True)
     except:
@@ -123,15 +127,12 @@ def preprocess(csv_name):
         c_ip_pair = -1
         # Check if IP pair already exists in an actice dyad. If it does not create new dyad
         if (row.loc['Src IP'], row.loc['Dst IP']) in active_dyad:
-            #c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
             c_ip_pair = (row.loc['Src IP'], row.loc['Dst IP'])
             pass
         elif (row.loc['Dst IP'], row.loc['Src IP']) in active_dyad:
-            #c_ip_pair = (row.loc['Destination IP'], row.loc['Source IP'])
             c_ip_pair = (row.loc['Dst IP'], row.loc['Src IP'])
             pass
         else:
-            #c_ip_pair = (row.loc['Source IP'], row.loc['Destination IP'])
             c_ip_pair = (row.loc['Src IP'], row.loc['Dst IP'])
             active_dyad[c_ip_pair] = []
 
@@ -143,6 +144,7 @@ def preprocess(csv_name):
         if current_time > active_dyad[c_ip_pair][0][0] + 60*params['max_hour'] or len(active_dyad[c_ip_pair]) >= params['nb_steps']:
             dyad_hours.append((c_ip_pair, active_dyad[c_ip_pair]))
             active_dyad.pop(c_ip_pair, None)
+
     # Loop through all active dyads that are not terminated early
     for key in active_dyad:
        dyad_hours.append((key, active_dyad[key]))
@@ -170,7 +172,6 @@ def preprocess(csv_name):
     
 
 def format_out(lstm_out):
-    # Input size, (N, 9)
     max_lstm_out = np.argmax(lstm_out, axis=1)
     format_count = {
         0:0,
@@ -183,6 +184,9 @@ def format_out(lstm_out):
         7:0,
         8:0,
     }
+    dt = datetime.now()
+    dt_string = "{0}:{1}:{2}".format(dt.hour, dt.minute, dt.second)
+    print_attack("Summary at {0}:".format(dt_string))
     if SUMMARY:
         for pred in max_lstm_out:
             format_count[pred] += 1
@@ -202,7 +206,7 @@ def format_out(lstm_out):
 
 def run_sentinel():
     # Setup code
-    print_info("XYZ SENTINEL STARTING.")
+    print_info("FlowSniffR Starting.")
 
     scapy.all.conf.sniff_promisc = True
     cic_pkt_count = 0
@@ -217,7 +221,7 @@ def run_sentinel():
     flow_count = 0
     pre_count = 1
 
-    model_path = "./models/1567001597_200_best_cpu.h5"
+    model_path = "./models/1567345397_200_best_cpu.h5"
     
     try:
         model = load_model(model_path)
@@ -227,10 +231,11 @@ def run_sentinel():
         exit()
 
     # Infinite Loop
-    print_info("XYZ SENTINEL START.")
+    print_info("FlowSniffR Start")
     while True:
+        #print_info("Thinking..")
         try:
-            packets = sniff(count=PKT_COUNT)
+            packets = sniff(count=PKT_COUNT, iface=interface)
         except:
             print_error("Failed to sniff packets")
 
@@ -239,19 +244,15 @@ def run_sentinel():
 
         cic_pkt_count += len(packets)
         pcap_pkt_count += len(packets)
-        #for pkt in packets:    
-            #t = time.localtime()
-            #current_time = time.strftime("%H:%M:%S", t)
-            #print_info("{0} {1}".format(current_time, pkt.summary()))
         
         write_pkts(packets)
 
         # Call CIC if min has been exceeded
         if cic_pkt_count >= CIC_MIN_START:
             print_debug("Passing to CIC")
-            pcap_name = "{0}/{1}_sentinel_pcap_{2}.pcap".format(PCAP_PATH, start_time, pcap_count)
+            pcap_name = "{0}_sentinel_pcap_{1}.pcap".format(start_time, pcap_count)
 
-            if os.system("{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/{1} {0}/CIC_out/ > nul".format(os.getcwd().replace("\\", "/"), pcap_name)):
+            if os.system("{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/{2}/{1} {0}/CIC_out/ > nul".format(os.getcwd().replace("\\", "/"), pcap_name, PCAP_PATH)):
                 print_error("CICFlowMeter threw an error..")
             cic_pkt_count = 0
 
@@ -272,15 +273,8 @@ def run_sentinel():
             # Format output and display
             format_out(lstm_out)
             pre_count += 1
-        
-        #DEBUG
-        if not pcap_pkt_count % (PKT_COUNT * 10):
-            print_debug("pcap_pkt_count = {0}".format(pcap_pkt_count))
-        #END DEBUG
-
 
         # Increment pcap counter if max exceeded
-        #if pcap_pkt_count >= PCAP_MAX_LENGTH:
         if os.path.getsize("{0}/{1}_sentinel_pcap_{2}.pcap".format(PCAP_PATH, start_time, pcap_count)) >= PCAP_MAX_SIZE:
             print_info("Max PCAP length reached. Creating new file")
             pcap_count += 1
@@ -302,9 +296,56 @@ def w_pre_call():
 def w_lstm_call():
     pass
 
+# TODO: Handle command line args
+# Return dictionary of parameters and their values
+# or just set global vars..
+def handle_args():
+    FLAGS = ['-h', '--help', '-H',
+             '-v', '--verbosity',
+             '-i', '--interface',
+             '-p', '--packets',
+             '-m', '--model',
+             '-s', '--summary',
+             '-b', '--banner']
+
+
+    for arg_i in range(1, len(sys.argv)):
+        arg = sys.argv(arg_i)
+        if arg in FLAGS:
+            if arg in ['-h', '--help']:
+                # Help arg
+                pass
+            elif arg == '-H':
+                # Extended help arg
+                pass
+            elif arg in ['-v', '--verbosity']:
+                # Verbosity arg
+                pass
+            elif arg in ['-i', '--interface']:
+                # Network interface arg (Which interface to listen on)
+                pass
+            elif arg in ['-p', '--packets']:
+                # Nb packets arg (How many packets to sniff)
+                pass
+            elif arg in ['-m', '--model']:
+                # Model arg (Which LSTM file to use)
+                pass
+            elif arg in ['-s', '--summary']:
+                # Summary arg (display summary or detailed log)
+                pass
+            elif arg in ['-b', '--banner']:
+                # Banner arg (display banner?)
+                pass
+            
+        else:
+            print_error("Invalid argument {0}.".format(arg))
+            print_error("See help (-h, --help) for correct usage.")
+            exit()
+    
 
 if __name__ == '__main__':
     # TODO: Handle Command Line inputs for:
     # Verbosity, MIN parameters, Network Choice, pkt count
+    handle_args()
     banner()
     run_sentinel()

@@ -15,8 +15,11 @@ import sys
 
 from model import create_model
 from _params import params
+import cudnn_to_cpu
 
 from random import sample
+
+from sklearn.utils import class_weight
 
 save_name = int(time())
 
@@ -51,7 +54,7 @@ model = create_model(a_vector_text.shape, a_vector_labels.shape)
 print("Done.")
 
 print("Creating Optimisers.. ", end='')
-opt_1 = Adam(lr=params['rate_1']) #opt_1 = SGD(lr=params['rate_1'])
+opt_1 = Adam(lr=params['rate_1'])
 print("Done.")
 
 print("Compiling Model.. ", end='')
@@ -60,25 +63,17 @@ print("Done.")
 
 early_stop = EarlyStopping(monitor='val_acc', patience=10, mode='max')
 mdl_check = ModelCheckpoint('{0}/{1}_{2}_best.h5'.format(params['model_dir'], save_name, params['nb_steps']), 
-                            save_best_only=True, monitor='val_acc', mode='max')#, save_weights_only=params['cpu_eval'])
-#reduce_lr = ReduceLROnPlateau(monitor='val_acc', factor=0.1, patience=10, verbose=1, mode='max')
+                            save_best_only=True, monitor='val_acc', mode='max')
 
 if len(sys.argv) == 2:
     model = load_model(sys.argv[1])
 
 attack_length = a_vector_text.shape[0]
 for _ in tqdm(range(50)):
-    # Maybe try combining attack and benign together again?
     random_subset = np.random.randint(b_vector_text.shape[0], size=int(attack_length))
-
-    print(a_vector_text.shape)
-    print(b_vector_text.shape)
 
     concat_X = np.concatenate((a_vector_text, b_vector_text[random_subset, :, :]), axis=0)
     concat_Y = np.concatenate((a_vector_labels, b_vector_labels[random_subset, :]), axis=0)
-
-    print(concat_X.shape)
-    print(concat_Y.shape)
 
     model.fit(concat_X, concat_Y,
             epochs=params['epoch_1'], batch_size=params['batch_1'],
@@ -90,3 +85,7 @@ print("Training complete. Save? Y/N", end='')
 x = input(": ")
 if x == "Y":
     model.save("{0}/{1}_{2}_final.h5".format(params['model_dir'], save_name, params['nb_steps']))
+
+    x = input("Save CPU version? Y/N: ")
+    if x == "Y":
+        cudnn_to_cpu.convert("{0}/{1}_{2}_final.h5".format(params['model_dir'], save_name, params['nb_steps']))
