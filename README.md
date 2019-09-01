@@ -1,4 +1,19 @@
 # FlowSniffr Intrusion Detection System
+```
+===================================================================================
+    
+                    _,)
+            _..._.-;-'      ______ _                _____       _  __  __ _____  
+         .-'     `(        |  ____| |              / ____|     (_)/ _|/ _|  __ \ 
+        /      ;   \       | |__  | | _____      _| (___  _ __  _| |_| |_| |__) |
+       ;.' ;`  ,;  ;       |  __| | |/ _ \ \ /\ / /\___ \| '_ \| |  _|  _|  _  / 
+      .'' ``. (  \ ;       | |    | | (_) \ V  V / ____) | | | | | | | | | | \ \ 
+     / f_ _L \ ;  )\       |_|    |_|\___/ \_/\_/ |_____/|_| |_|_|_| |_| |_|  \_\
+     \/|` '|\/;; <;/
+    ((; \_/  (()
+
+===================================================================================
+```
 ## Overview
 Keras implementation of an LSTM Neural Network to detect malicious network traffic.
 
@@ -13,14 +28,17 @@ Run `train.py` to train the network and `eval.py` to evaluate the performance of
 So far, only tested on Windows.
 ### Arguments
 ```
+python sentinel.py [args]
+
+-Flags-                        -Description-                                    -Defaults-
 -h, --help                     Display help information
 -H                             Display extended help information
--v, --verbosity <level>        Set verbosity level. (0-3)
--i, --interface <interface>    Set interface (eg. WiFi, Ethernet)
--p, --packets <integer>        Set number of packets to sniff in one pass
--m, --model <path>             Relative path to saved keras model (.h5 file)
--s, --summary                  Display summary rather than detailed output
--b, --banner                   Display banner on startup
+-v, --verbosity <level>        Set verbosity level. (0-3)                       1
+-i, --interface <interface>    Set interface (eg. WiFi, Ethernet)               Ethernet
+-p, --packets <integer>        Set number of packets to sniff in one pass       16
+-m, --model <path>             Relative path to saved keras model (.h5 file)    Best available
+-d, --detailed                 Display detailed rather than summary output      Summary      
+-b, --banner                   Disable banner on startup                        Enabled         
 ```
 
 ## Architecture
