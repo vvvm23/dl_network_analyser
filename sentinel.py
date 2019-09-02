@@ -57,7 +57,8 @@ PCAP_PATH = "./pcap"
 pcap_count = 0
 start_time = 0
 #interface = "WiFi"
-interface = "Ethernet"
+#interface = "Ethernet"
+interface = "Classroom Ethernet"
 
 attack_type = {
     0:"Benign",
@@ -75,7 +76,7 @@ attack_type = {
 def banner():
     f = open("./banner.txt")
     lines = f.readlines()
-    print("\033[1;34;40m ", end='')
+    print("\033[1;36;40m ", end='')
     print(''.join(lines))
     f.close()
     pass
@@ -221,7 +222,7 @@ def run_sentinel():
     flow_count = 0
     pre_count = 1
 
-    model_path = "./models/1567345397_200_best_cpu.h5"
+    model_path = "./1567001597_200_best_cpu.h5"
     
     try:
         model = load_model(model_path)
@@ -231,6 +232,8 @@ def run_sentinel():
         exit()
 
     # Infinite Loop
+    sniffing_counter_gui = 0
+
     print_info("FlowSniffR Start")
     while True:
         #print_info("Thinking..")
@@ -252,8 +255,10 @@ def run_sentinel():
             print_debug("Passing to CIC")
             pcap_name = "{0}_sentinel_pcap_{1}.pcap".format(start_time, pcap_count)
 
-            if os.system("{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/{2}/{1} {0}/CIC_out/ > nul".format(os.getcwd().replace("\\", "/"), pcap_name, PCAP_PATH)):
+            #print_debug("{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/{2}/{1} {0}/CIC_out/ > nul".format(os.getcwd().replace("\\", "/"), pcap_name, PCAP_PATH[1:]))
+            if os.system('{0}/CICFlowMeter-4.0/bin/cfm.bat {0}/{2}/{1} {0}/CIC_out/ > nul'.format(os.getcwd(), pcap_name, PCAP_PATH[1:])):
                 print_error("CICFlowMeter threw an error..")
+                exit()
             cic_pkt_count = 0
 
             flow_count = sum(1 for l in open("./CIC_out/{0}_Flow.csv".format(pcap_name)))
@@ -282,6 +287,19 @@ def run_sentinel():
 
             if pcap_count == 2:
                 exit()
+
+        # Sniffing display
+        sniffing_counter_gui += 1
+        if sniffing_counter_gui in range(0,5):
+            print("\033[1;37;40m           \rSniffing", end='\r')
+        elif sniffing_counter_gui in range(5,10):
+            print("\033[1;37;40m\rSniffing.", end='\r')
+        elif sniffing_counter_gui in range(10,15):
+            print("\033[1;37;40m\rSniffing..", end='\r')
+        elif sniffing_counter_gui in range(15,20):
+            print("\033[1;37;40m\rSniffing...", end='\r')
+            sniffing_counter_gui = 0
+
 
 # TODO: Multithread the application
 def w_sniff():
