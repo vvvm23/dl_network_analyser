@@ -4,13 +4,13 @@ params = {
     'raw_dir': "./data/raw",
     'model_dir': "./models",
     'split_set': True,
-    'vocab': 50,
+    'vocab': 100,
     'nb_steps': 200,
     'nb_classes': 9,
     'cpu_eval': True, # If true, save weights only so can be loaded as LSTM rather than CuDNN LSTM
 
     # Model parameters
-    'hidden_size': 50,
+    'hidden_size': 100,
     'nb_lstm': 5,
     'dropout': True,
     'dropout_rate': 0.2,

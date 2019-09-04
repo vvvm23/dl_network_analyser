@@ -51,14 +51,16 @@ DEBUG = False
 SILENT = False
 SUMMARY = True
 PKT_COUNT = 1
+MODEL_PATH = './models/1567431180_200_best_cpu.h5'
+BANNER = True
 
 PCAP_PATH = "./pcap"
 
 pcap_count = 0
 start_time = 0
-#interface = "WiFi"
+INTERFACE = "Ethernet"
 #interface = "Ethernet"
-interface = "Classroom Ethernet"
+#interface = "Classroom Ethernet"
 
 attack_type = {
     0:"Benign",
@@ -221,14 +223,12 @@ def run_sentinel():
 
     flow_count = 0
     pre_count = 1
-
-    model_path = "./1567001597_200_best_cpu.h5"
     
     try:
-        model = load_model(model_path)
+        model = load_model(MODEL_PATH)
         pass
     except:
-        print_error("Failed to load model from {0}".format(model_path))
+        print_error("Failed to load model from {0}".format(MODEL_PATH))
         exit()
 
     # Infinite Loop
@@ -238,7 +238,7 @@ def run_sentinel():
     while True:
         #print_info("Thinking..")
         try:
-            packets = sniff(count=PKT_COUNT, iface=interface)
+            packets = sniff(count=PKT_COUNT, iface=INTERFACE)
         except:
             print_error("Failed to sniff packets")
 
@@ -326,34 +326,53 @@ def handle_args():
              '-s', '--summary',
              '-b', '--banner']
 
-
-    for arg_i in range(1, len(sys.argv)):
-        arg = sys.argv(arg_i)
+    arg_i = 0
+    while arg_i < len(sys.argv) - 1:
+        arg_i += 1
+        arg = sys.argv[arg_i]
         if arg in FLAGS:
             if arg in ['-h', '--help']:
                 # Help arg
-                pass
+
+                exit()
             elif arg == '-H':
                 # Extended help arg
-                pass
+
+                exit()
             elif arg in ['-v', '--verbosity']:
                 # Verbosity arg
-                pass
+                arg_i += 1
+                global VERBOSITY
+                VERBOSITY = int(sys.argv[arg_i])
+                print_debug("Setting VERBOSITY to {0}.".format(VERBOSITY))
             elif arg in ['-i', '--interface']:
                 # Network interface arg (Which interface to listen on)
-                pass
+                arg_i += 1
+                global INTERFACE
+                INTERFACE = sys.argv[arg_i]
+                print_debug("Setting INTERFACE to {0}.".format(INTERFACE))
             elif arg in ['-p', '--packets']:
                 # Nb packets arg (How many packets to sniff)
-                pass
+                arg_i += 1
+                global PKT_COUNT
+                PKT_COUNT = int(sys.argv[arg_i])
+                print_debug("Setting PKT_COUNT to {0}.".format(PKT_COUNT))
             elif arg in ['-m', '--model']:
                 # Model arg (Which LSTM file to use)
-                pass
-            elif arg in ['-s', '--summary']:
+                arg_i += 1
+                global MODEL_PATH
+                MODEL_PATH = sys.argv[arg_i]
+                print_debug("Setting MODEL_PATH to {0}.".format(MODEL_PATH))
+            elif arg in ['-d', '--detailed']:
                 # Summary arg (display summary or detailed log)
-                pass
+                global SUMMARY
+                SUMMARY = False
+                print_debug("Setting SUMMARY to {0}.".format(SUMMARY))
             elif arg in ['-b', '--banner']:
-                # Banner arg (display banner?)
-                pass
+                # Banner arg (Disables banner?)
+                global BANNER
+                BANNER = False
+                print_debug("Setting BANNER to {0}.".format(BANNER))
             
         else:
             print_error("Invalid argument {0}.".format(arg))

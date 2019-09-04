@@ -35,12 +35,25 @@ attack_type = {
 def raw_to_train():
     frames = []
     # Iterate through all dataset files and remove duplicates
-    print("Reading raw data.. ", end='')
+    print("Reading raw data.. ")
     for f in tqdm(os.listdir(params['raw_dir'])):
+        print("Reading raw flow file {0}.".format(f))
         df = pd.read_csv("{0}/{1}".format(params['raw_dir'], f), skipinitialspace=True, encoding='latin1')
+
+        if 'Src IP' in list(df):
+            df = df.rename({'Src IP': 'Source IP'})
+        if 'Dst IP' in list(df):
+            df = df.rename({'Dst IP': 'Destination IP'})
+        if 'Tot Fwd Pkts' in list(df):
+            df = df.rename({'Tot Fwd Pkts': 'Total Forward Packets'})
+        if 'Tot Bwd Pkts' in list(df):
+            df = df.rename({'Tot Bwd Pkts': 'Total Backward Packets'})
+
         df.drop_duplicates(keep=False,inplace=True)
         frames.append(df)
     print("Done.")
+
+    # TODO: df.rename allows renaming columns headers, so can adapt to different IDS20XX formats. Process new data with it
 
     print("Raw to Token Stream conversion.. ", end='')
     dyad_hours = []
